@@ -1,0 +1,2213 @@
+
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>学生会工作证 · CUHK-Shenzhen</title>
+  <style>
+    /* ========== 设计变量（与 2025 仓库保持一致） ========== */
+    :root{
+      --border: #000;
+      --border2: #000;
+      --panel: #ffffff;
+      --bg-top: #FFF4CC;
+      --bg-bottom: #BFA8FF;
+      --purple: #A78BFA;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0; min-height:100svh;
+      background:url("图层 1.png") no-repeat center/cover;
+      background-image: url("图层 1.png"), linear-gradient(180deg,#FFF4CC 0%,#e7d8f3 50%,#BFA8FF 100%);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow-x:hidden; overflow-y:auto;
+    }
+
+    /* ========== 响应式舞台 ========== */
+    .stage{ position:relative; width:min(400px, calc(100vw - 24px)); }
+    .wrap{ position:relative; width:100%; }
+    .badge-wrap{ position:relative; width:100%; padding-top:124px; }
+
+    /* ========== 证件卡外观 ========== */
+    .badge{
+      position:relative; z-index:1; width:100%; border-radius:32px;
+      background: linear-gradient(
+        to bottom,
+        #f2e6b9 0%,
+        #e7d8f3 45%,
+        #c7b5ff 100%
+      );
+      display:flex; flex-direction:column;
+    }
+    .badge::before{ /* 外层粗黑边 */
+      content:""; position:absolute; inset:0; border-radius:32px;
+      box-shadow:0 0 0 8px var(--border2) inset; pointer-events:none; z-index:3;
+    }
+    .badge::after{ /* 内层细黑边 */
+      content:""; position:absolute; inset:14px; border-radius:24px;
+      box-shadow:0 0 0 4px var(--border) inset; pointer-events:none; z-index:3;
+    }
+    .content{ position:relative; z-index:1; display:flex; flex-direction:column; }
+
+    /* G2 连续曲率：预览与原生导出均使用浏览器的 squircle 曲线。 */
+    .badge, .badge::before, .badge::after,
+    .progress-wrap, .progress-fill, .panel,
+    #infoCard .name-wrap .field,
+    .opt, .btn, .dept-card, .preview .box,
+    .strap, .strap-notch, .avatar, .avatar img, .fields,
+    .btn-sm, .qr-img, .qr-panel, .promo-stack,
+    .score-bar-wrap, .score-bar-fill, .toast{
+      corner-shape:squircle;
+    }
+
+    /* ========== 标题 ========== */
+    .title{
+      text-align:center; font-size:32px; font-weight:800; letter-spacing:2px;
+      margin:12px 0 0; position:relative; z-index:2;
+    }
+    .subtitle{
+      text-align:center; font-size:13px; color:#555; margin-bottom:4px;
+      position:relative; z-index:2;
+    }
+
+    /* ========== 进度条 ========== */
+    .progress-wrap{
+      margin:8px 28px 0; height:6px; background:rgba(0,0,0,.08);
+      border-radius:3px; overflow:hidden; position:relative; z-index:2;
+    }
+    .progress-fill{
+      height:100%; background:#111; border-radius:3px;
+      transition:width .3s ease;
+    }
+
+    /* ========== 通用面板 ========== */
+    .panel{
+      margin:18px 28px 0; background:var(--panel); border-radius:24px;
+      box-shadow: inset 0 0 0 4px var(--border);
+      padding:18px 18px 20px; position:relative; z-index:2;
+    }
+
+    /* Quiz 卡片固定高度，防止切题时跳动 */
+    #quizCard{ height:620px; min-height:620px; overflow:hidden; }
+    #quizCard .content{ height:100%; }
+    #quizCard .title{ margin-top:28px; font-size:30px; letter-spacing:1px; }
+    #quizCard .panel{
+      height:400px; min-height:400px; overflow:hidden;
+      padding:14px 14px 16px;
+      display:flex; flex-direction:column;
+    }
+    #quizCard .btn-row{ margin-bottom:34px; }
+    #quizCard .q-text{
+      flex:0 0 auto; margin-bottom:10px; line-height:1.35;
+      font-size:clamp(10.5px, 3.1vw, 14px); white-space:nowrap;
+    }
+    #quizCard .options{
+      flex:1; min-height:0; gap:6px;
+      grid-template-rows:repeat(6, minmax(0, 1fr));
+    }
+    #quizCard .opt{
+      min-height:0; height:100%; padding:6px 10px; gap:8px; line-height:1.2;
+    }
+    #quizCard .opt-letter{
+      flex-basis:24px; width:24px; height:24px;
+      border-width:2px; font-size:12px;
+    }
+    /* 信息页 - 居中垂直布局 */
+    #infoCard{ min-height:590px; }
+    #infoCard .title{ margin-top:46px; font-size:34px; }
+    #infoCard .subtitle{ margin-bottom:20px; font-size:14px; }
+    #infoCard .panel{
+      min-height:0; padding:32px 32px 28px; display:flex; flex-direction:column;
+      align-items:center; gap:22px; background:transparent;
+      box-shadow:none; border:none; margin-top:0;
+    }
+    #infoCard .name-wrap{ width:100%; max-width:280px; }
+    #infoCard .name-wrap .label{
+      text-align:center; font-size:15px; font-weight:700; margin-bottom:14px; color:#333;
+    }
+    #infoCard .name-wrap .field{
+      height:48px; background:#fff; border-radius:16px; box-shadow:0 2px 10px rgba(0,0,0,.08);
+      padding:0 16px; display:flex; align-items:center;
+    }
+    #infoCard .name-wrap .field::after{ display:none; }
+    #infoCard .name-wrap .input{
+      font-size:18px; text-align:center; font-weight:600;
+    }
+    #infoCard .avatar-wrap{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+    #infoCard .avatar-upload{
+      width:120px; height:120px; border-radius:50%; background:#f0f0f0; overflow:hidden;
+      box-shadow:0 4px 16px rgba(0,0,0,.08); cursor:pointer; position:relative;
+      display:flex; align-items:center; justify-content:center; transition:all .2s;
+    }
+    #infoCard .avatar-upload:hover{ box-shadow:0 6px 20px rgba(0,0,0,.12); }
+    #infoCard .avatar-upload img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:50%; }
+    .photo-tip{ font-size:13px; color:#777; line-height:1.5; text-align:center; }
+    .photo-note{ font-size:12px; color:#aaa; }
+
+    /* ========== 题目 ========== */
+    .q-text{ font-size:15px; font-weight:700; margin:0 0 12px; line-height:1.5; text-align:center; }
+
+    /* ========== 选项卡片 ========== */
+    .options{ display:grid; gap:8px; }
+    .opt{
+      display:flex; align-items:center; gap:10px;
+      padding:11px 14px; border:2.5px solid #ccc; border-radius:18px;
+      cursor:pointer; transition:all .15s ease;
+      background:#fafafa; font-size:14px; line-height:1.4;
+    }
+    .opt:hover{ border-color:#888; }
+    .opt.selected{ border-color:#111; background:#f5f0ff; transform:translateX(3px); }
+    .opt-letter{
+      flex:0 0 28px; width:28px; height:28px; border-radius:50%;
+      border:2.5px solid #ccc; display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:13px; color:#888; transition:all .15s ease;
+    }
+    .opt.selected .opt-letter{ border-color:#111; background:#111; color:#fff; }
+    .opt-label{
+      flex:1; min-width:0; font-weight:600; color:#333;
+      font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    /* ========== 按钮 ========== */
+    .btn-row{
+      margin:18px 28px 24px; position:relative; z-index:2;
+      display:flex; gap:12px;
+    }
+    .btn-row .btn{ flex:1; }
+    .btn{
+      width:100%; height:44px; border-radius:999px; border:4px solid #000;
+      background:#111; color:#fff; font-size:18px; font-weight:800;
+      letter-spacing:2px; cursor:pointer; font-family:inherit;
+      white-space:nowrap; min-width:0; padding:0 14px;
+    }
+    .btn:active{ transform:translateY(1px); }
+    .btn:disabled{ opacity:.35; cursor:not-allowed; }
+    .btn-outline{
+      background:#fff; color:#111;
+      border:3px solid #000;
+    }
+
+    /* 按钮组 */
+    .btn-group{ display:flex; gap:10px; }
+    .btn-group .btn{ flex:1; font-size:16px; letter-spacing:1px; }
+    .btn-group .btn.btn-outline{ flex:0.6; }
+
+    /* ========== 部门卡片 ========== */
+    .dept-card{
+      margin:18px 28px; background:#fff; border-radius:24px;
+      box-shadow: inset 0 0 0 4px var(--border);
+      padding:22px 20px; text-align:center; position:relative; z-index:2;
+    }
+    .dept-icon{ font-size:48px; margin-bottom:6px; }
+    .dept-name{ font-size:28px; font-weight:800; letter-spacing:1px; margin-bottom:6px; }
+    .dept-desc{ font-size:14px; color:#555; line-height:1.6; }
+
+    /* ========== 表单 ========== */
+    .form{ display:grid; gap:18px; position:relative; z-index:2; }
+    .row{ display:flex; align-items:center; gap:12px; white-space:nowrap; }
+    .row strong{ flex:0 0 4em; font-size:18px; }
+    .field{ flex:1; position:relative; height:34px; display:flex; align-items:flex-end; }
+    .field::after{ content:""; position:absolute; left:0; right:8px; bottom:0; height:2px; background:#111; }
+    .input{
+      width:100%; border:none; outline:none; background:transparent;
+      font-size:18px; padding:0 6px 2px; line-height:1; font-weight:600; font-family:inherit;
+    }
+    .input::placeholder{ color:#777; font-weight:500; }
+
+    /* ========== 照片预览 ========== */
+    .preview{ display:flex; align-items:center; justify-content:center; gap:12px; }
+    .preview .box{
+      width:100px; aspect-ratio:3/4; background:#fff; border-radius:18px;
+      box-shadow: inset 0 0 0 3px var(--border); overflow:hidden;
+      display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+    .preview .box img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .preview .tip{ font-size:12px; color:#333; text-align:center; line-height:1.5; }
+    .hidden{ display:none !important; }
+
+    /* ========== 工作证 ========== */
+    .strap{
+      position:absolute; left:50%; top:0; transform:translateX(-50%);
+      width:80px; height:120px; background:#B69CFF; border-radius:10px;
+    }
+    .strap-notch{
+      position:absolute; left:50%; top:96px; transform:translateX(-50%);
+      width:110px; height:50px; background:#fff; border-radius:18px;
+      box-shadow: inset 0 0 0 6px var(--border); z-index:2;
+    }
+    .top{ position:relative; padding:22px 30px 16px; z-index:2; }
+    .logo-line{ height:48px; display:flex; align-items:center; justify-content:center; overflow:hidden; padding:0 8px; }
+    .logo-img{ flex:none; width:min(270px, 100%); height:auto; display:block; }
+    #badgeCard .title{ margin:14px 0 6px; line-height:1.25; }
+
+    .info-row{ display:flex; gap:16px; margin-top:20px; align-items:stretch; }
+    .avatar{
+      flex:0 0 100px; aspect-ratio:5/7; background:#fff; border-radius:22px;
+      box-shadow: inset 0 0 0 4px var(--border); padding:8px; display:flex; align-items:stretch;
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; border-radius:16px; }
+
+    .fields{
+      flex:1; background:#fff; border-radius:22px;
+      box-shadow: inset 0 0 0 4px var(--border);
+      padding:16px 18px; display:grid; gap:14px;
+      grid-template-rows: 1fr 1fr; min-width:0; overflow:hidden;
+    }
+    .line{ display:flex; gap:10px; align-items:center; font-size:16px; white-space:nowrap; }
+    .line strong{ flex:0 0 2.5em; }
+    .value{ flex:1; position:relative; min-height:26px; display:flex; align-items:center; }
+    .value::after{ content:""; position:absolute; left:0; right:6px; bottom:0; height:2px; background:#111; }
+    .val-text{ position:relative; z-index:1; padding:0 6px; font-weight:600; display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+    /* ========== 操作按钮 ========== */
+    .action-row{
+      display:flex; gap:10px; margin:14px auto 0; width:min(400px, 100%);
+    }
+    .btn-sm{
+      height:42px; border-radius:999px; font-size:15px; font-weight:700;
+      cursor:pointer; font-family:inherit; letter-spacing:1px;
+      white-space:nowrap; min-width:0; padding:0 10px;
+    }
+    .btn-back{ flex:1; background:#fff; color:#111; border:3px solid #000; }
+    .btn-dl{ flex:2; background:#111; color:#fff; border:4px solid #000; }
+    .btn-sm:active{ transform:translateY(1px); }
+
+    /* ========== 二维码 ========== */
+    .qr-wrap{
+      display:flex; flex-direction:column; align-items:center; margin-top:14px; gap:6px;
+    }
+    .qr-img{
+      width:120px; height:120px; border-radius:16px;
+      border:3px solid #000; background:#fff; object-fit:contain;
+    }
+    .qr-label{ font-size:13px; font-weight:700; color:#333; }
+
+    /* ========== 分数条 ========== */
+    .score-row{ display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+    .score-label{ flex:0 0 64px; font-size:11px; font-weight:700; text-align:right; white-space:nowrap; }
+    .score-bar-wrap{ flex:1; height:12px; background:#f0f0f0; border-radius:8px; overflow:hidden; border:1.5px solid #ccc; }
+    .score-bar-fill{ height:100%; border-radius:7px; transition:width .4s ease; transform-origin:left center; }
+    .score-bar-fill.highlight{ background:linear-gradient(90deg,#FF6B6B,#FF3366); }
+    .score-bar-fill.normal{ background:linear-gradient(90deg,#A78BFA,#7C5CFF); }
+
+    /* ========== Toast ========== */
+    .toast{
+      position:fixed; top:20px; left:50%;
+      transform:translateX(-50%) translateY(-120px);
+      background:#111; color:#fff; padding:10px 22px; border-radius:999px;
+      border:3px solid #000; font-size:14px; font-weight:700;
+      z-index:999; opacity:0;
+      transition:all .35s cubic-bezier(.16,1,.3,1);
+      pointer-events:none; white-space:nowrap;
+    }
+    .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+
+    /* ========== 动画 ========== */
+    @keyframes stageEnter{
+      from{ opacity:0; transform:translateY(12px) scale(.985); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes optionEnter{
+      from{ opacity:0; translate:0 8px; }
+      to{ opacity:1; translate:0 0; }
+    }
+    @keyframes badgeReveal{
+      from{ opacity:0; transform:translateY(18px) scale(.975); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes strapDrop{
+      from{ opacity:0; transform:translateX(-50%) translateY(-22px); }
+      to{ opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    @keyframes barGrow{
+      from{ transform:scaleX(0); }
+      to{ transform:scaleX(1); }
+    }
+    @keyframes questionExitLeft{
+      from{ opacity:1; transform:translateX(0); }
+      to{ opacity:0; transform:translateX(-34px); }
+    }
+    @keyframes questionExitRight{
+      from{ opacity:1; transform:translateX(0); }
+      to{ opacity:0; transform:translateX(34px); }
+    }
+    @keyframes questionEnterRight{
+      from{ opacity:0; transform:translateX(34px); }
+      to{ opacity:1; transform:translateX(0); }
+    }
+    @keyframes questionEnterLeft{
+      from{ opacity:0; transform:translateX(-34px); }
+      to{ opacity:1; transform:translateX(0); }
+    }
+
+    .page.active .stage{ animation:stageEnter .46s cubic-bezier(.2,.8,.2,1) both; }
+    #quizCard .opt{ animation:optionEnter .36s cubic-bezier(.2,.8,.2,1) both; }
+    #quizCard .opt:nth-child(2){ animation-delay:.035s; }
+    #quizCard .opt:nth-child(3){ animation-delay:.07s; }
+    #quizCard .opt:nth-child(4){ animation-delay:.105s; }
+    #quizCard .opt:nth-child(5){ animation-delay:.14s; }
+    #quizCard .opt:nth-child(6){ animation-delay:.175s; }
+    #badgePage.active .badge-wrap{ animation:badgeReveal .58s cubic-bezier(.16,1,.3,1) both; }
+    #badgePage.active .strap, #badgePage.active .strap-notch{ animation:strapDrop .5s .16s cubic-bezier(.16,1,.3,1) both; }
+    #badgePage.active .score-bar-fill{ animation:barGrow .7s .28s cubic-bezier(.16,1,.3,1) both; }
+    #quizCard .panel.question-exit-left{ animation:questionExitLeft .17s ease-in both; }
+    #quizCard .panel.question-exit-right{ animation:questionExitRight .17s ease-in both; }
+    #quizCard .panel.question-enter-right{ animation:questionEnterRight .28s cubic-bezier(.16,1,.3,1) both; }
+    #quizCard .panel.question-enter-left{ animation:questionEnterLeft .28s cubic-bezier(.16,1,.3,1) both; }
+
+    @media (hover:hover){
+      .btn, .btn-sm{ transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+      .btn:hover:not(:disabled), .btn-sm:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 5px 0 rgba(0,0,0,.16); }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *, *::before, *::after{
+        animation-duration:.01ms !important;
+        animation-delay:0ms !important;
+        transition-duration:.01ms !important;
+        scroll-behavior:auto !important;
+      }
+    }
+
+    /* ========== 页面切换 ========== */
+    .page{ display:none; }
+    .page.active{
+      width:100%; min-height:100svh; padding:16px max(12px, env(safe-area-inset-right)) 16px max(12px, env(safe-area-inset-left));
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+
+    /* ========== 响应式 ========== */
+    @media (max-width:420px){
+      .page.active{ padding-top:max(12px, env(safe-area-inset-top)); padding-bottom:max(12px, env(safe-area-inset-bottom)); }
+      .stage{ width:min(100%, 376px); }
+      .badge-wrap{ padding-top:112px; }
+      #infoCard{ min-height:560px; }
+      #quizCard{ height:570px; min-height:570px; }
+      #quizCard .title{ margin-top:24px; font-size:clamp(23px, 7.2vw, 28px); letter-spacing:1px; }
+      #quizCard .panel{ height:370px; min-height:370px; }
+      #quizCard .btn-row{ margin-bottom:28px; }
+      .title{ font-size:29px; }
+      #infoCard .title{ margin-top:36px; font-size:31px; }
+      #infoCard .panel{ padding:24px 24px 22px; gap:20px; }
+      .panel{ margin-left:22px; margin-right:22px; padding:16px 15px 18px; }
+      .opt-label{ font-size:clamp(9.5px, 3vw, 11px); }
+      .btn-row{ margin:15px 22px 20px; gap:8px; }
+      .btn{ font-size:clamp(13px, 4.1vw, 17px); letter-spacing:1px; padding-inline:8px; }
+      .top{ padding:20px 24px 14px; }
+      .logo-line{ height:44px; }
+      .logo-img{ width:min(255px, 82vw); }
+      #badgeCard .title{ margin-top:12px; }
+      .info-row{ gap:12px; }
+      .avatar{ flex-basis:92px; }
+      .fields{ padding:14px 13px; }
+      .line{ gap:6px; font-size:15px; }
+      .action-row{ width:min(376px, calc(100vw - 24px)); gap:8px; }
+      .btn-sm{ font-size:clamp(12px, 3.6vw, 15px); letter-spacing:0; padding-inline:7px; }
+    }
+
+    @media (max-width:350px){
+      .page.active{ padding-left:8px; padding-right:8px; }
+      .stage{ width:100%; }
+      .panel{ margin-left:18px; margin-right:18px; }
+      .btn-row{ margin-left:18px; margin-right:18px; }
+      .opt{ padding:9px 10px; gap:8px; font-size:13px; }
+      .opt-letter{ flex-basis:25px; width:25px; height:25px; }
+      .opt-label{ font-size:clamp(9.5px, 3vw, 11px); }
+      .row strong{ flex-basis:3.5em; font-size:16px; }
+      .field{ height:30px; }
+      .input{ font-size:16px; }
+      .btn{ height:42px; font-size:12px; }
+      .btn-sm{ font-size:11px; }
+    }
+
+    /* ========== 最终工作证：整页等比适配，禁止滚动 ========== */
+    #badgePage.active{
+      --badge-bottom-gap:8px;
+      height:100svh; min-height:0; overflow:hidden;
+      padding:0 12px;
+      justify-content:flex-start;
+    }
+    .badge-shell{
+      --badge-fit:1; width:400px; flex:0 0 auto;
+      display:flex; flex-direction:column;
+      transform:scale(var(--badge-fit)); transform-origin:top center;
+      will-change:transform;
+    }
+    #badgePage .stage{ width:400px; }
+    #badgePage .badge-wrap{ width:400px; padding-top:84px; }
+    #badgePage .strap{ width:76px; height:86px; border-radius:10px; }
+    #badgePage .strap-notch{
+      top:66px; width:104px; height:44px; border-radius:16px;
+      box-shadow:inset 0 0 0 5px var(--border);
+    }
+    #badgeCard .top{ padding:26px 28px 10px; }
+    #badgeCard .logo-line{ height:38px; padding:0 8px; }
+    #badgeCard .logo-img{ width:260px; }
+    #badgeCard .title{ margin:0 0 2px; font-size:28px; line-height:1.2; }
+    #badgeCard .info-row{
+      display:grid; grid-template-columns:88px minmax(0, 1fr);
+      gap:12px; margin-top:10px; align-items:stretch;
+    }
+    #badgeCard .avatar{
+      width:88px; height:auto; aspect-ratio:5/7; padding:7px; border-radius:20px;
+    }
+    #badgeCard .avatar img{ border-radius:14px; }
+    #badgeCard .fields{
+      width:100%; height:100%; align-self:stretch;
+      padding:12px 14px; gap:10px; border-radius:20px;
+    }
+    #badgeCard .line{ font-size:14px; gap:6px; }
+    #badgeCard .value{ min-height:22px; }
+
+    /* 内部容器统一 3px 边框；工作证外部双层边框保持原粗细。 */
+    #badgeCard .avatar,
+    #badgeCard .fields,
+    #badgeCard .panel,
+    #badgeCard .promo-stack{
+      box-shadow:inset 0 0 0 3px var(--border);
+    }
+    #badgeCard .ability-panel{
+      min-height:92px; margin:10px 24px 0; padding:11px 12px 9px;
+    }
+    .plot-title{
+      margin-bottom:8px; text-align:center; font-size:13px; font-weight:800;
+    }
+    .badge-bottom{
+      display:grid; grid-template-columns:minmax(0, 1fr) 84px;
+      gap:10px; margin:10px 24px 26px; position:relative; z-index:2;
+    }
+    #badgeCard .dept-panel{
+      min-height:168px; margin:0; padding:12px;
+      display:flex; flex-direction:column;
+    }
+    #badgeCard .dept-panel .plot-title{ text-align:center; }
+    #badgeCard .ability-panel .score-row,
+    #badgeCard .dept-panel .score-row{ gap:6px; margin-bottom:0; }
+    #badgeCard .ability-panel .score-label{
+      flex:0 0 62px; font-size:10px; text-align:left;
+    }
+    #badgeCard .dept-panel .score-label{
+      flex:0 0 54px; font-size:10px; text-align:left;
+    }
+    #badgeCard .ability-panel .score-bar-wrap,
+    #badgeCard .dept-panel .score-bar-wrap{ height:11px; }
+    #badgeCard #abilityBars,
+    #badgeCard #scoreBars{
+      min-height:0; display:grid; row-gap:6px;
+    }
+    #badgeCard #scoreBars{ flex:1; align-content:center; }
+    #badgeCard .promo-stack{
+      min-height:168px; padding:12px 7px; border-radius:22px; background:#fff;
+      display:grid; grid-template-rows:repeat(3, 1fr); gap:8px;
+      overflow:hidden;
+    }
+    .promo-crop{
+      min-height:0; background-image:url("Student-Union-Promo-Matrix.png");
+      background-repeat:no-repeat; background-size:300% 100%;
+      background-color:#fff; border-radius:8px; corner-shape:squircle;
+      display:flex; align-items:center; justify-content:center; overflow:hidden;
+    }
+    .promo-crop img{
+      display:block; width:100%; height:100%; object-fit:contain;
+      image-rendering:auto;
+    }
+    .promo-crop-left img,
+    .promo-crop-right img{ image-rendering:pixelated; }
+    .promo-crop-left{ background-position:left center; }
+    .promo-crop-center{ background-position:center center; }
+    .promo-crop-right{ background-position:right center; }
+
+    #badgePage .action-row{
+      position:fixed; left:50%; bottom:var(--badge-bottom-gap);
+      transform:translateX(-50%); z-index:20;
+      width:min(400px, calc(100vw - 24px)); height:44px; margin:0; gap:10px;
+    }
+    #badgePage .btn-sm{ height:44px; font-size:15px; }
+
+    /* ========== 抽奖 & 管理后台 ========== */
+    .prize-cell, .prize-item, .admin-form .field, .lottery-fab, .prize-item-delete{
+      corner-shape:squircle;
+    }
+
+    #lotteryCard, #adminCard{ min-height:560px; }
+    #lotteryCard .title, #adminCard .title{ margin-top:32px; font-size:30px; letter-spacing:1px; }
+    #lotteryCard .panel, #adminCard .panel{
+      min-height:340px; display:flex; flex-direction:column; overflow:hidden;
+    }
+
+    /* 奖品网格 */
+    .prize-grid{
+      display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;
+      flex:1; min-height:0; align-content:center;
+    }
+    .prize-cell{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:14px 8px; border:2.5px solid #ccc; border-radius:18px;
+      background:#fafafa; transition:all .12s ease; text-align:center;
+    }
+    .prize-cell.spinning{ border-color:#A78BFA; background:#f5f0ff; transform:scale(1.06); }
+    .prize-cell.won{
+      border-color:#FF3366; background:linear-gradient(135deg,#FFF4CC,#f5f0ff);
+      transform:scale(1.08);
+    }
+    .prize-icon{ font-size:32px; margin-bottom:4px; line-height:1; }
+    .prize-name{ font-size:13px; font-weight:700; color:#333; line-height:1.3; }
+    .prize-count{ font-size:11px; color:#888; margin-top:2px; }
+    .prize-count .num{ font-weight:800; color:#555; }
+    .prize-count.zero .num{ color:#ccc; }
+    .prize-empty{ grid-column:1/-1; text-align:center; padding:24px; color:#999; font-size:14px; }
+
+    /* 抽奖结果 */
+    .lottery-result{
+      display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    }
+    .lottery-result.show{ display:flex; animation:badgeReveal .5s ease; }
+    .result-icon{ font-size:56px; animation:bounce 1s ease infinite; }
+    .result-text{ font-size:18px; font-weight:800; text-align:center; }
+    .result-prize{ font-size:24px; font-weight:800; color:#FF3366; }
+
+    /* 管理表单 */
+    .admin-form{
+      display:flex; flex-direction:column; gap:12px; margin-bottom:14px;
+      padding-bottom:14px; border-bottom:2px dashed #ddd;
+    }
+    .admin-form .row{ display:flex; gap:8px; align-items:center; }
+    .admin-form .field{
+      flex:1; height:38px; background:#fff; border-radius:12px;
+      box-shadow:0 2px 8px rgba(0,0,0,.06); padding:0 12px;
+      display:flex; align-items:center; position:relative;
+    }
+    .admin-form .field::after{ display:none; }
+    .admin-form .input{
+      width:100%; border:none; outline:none; background:transparent;
+      font-size:15px; font-weight:600; font-family:inherit;
+    }
+    .admin-form .field-small{ flex:0 0 70px; }
+    .admin-add-btn{
+      flex:0 0 auto; height:38px; padding:0 16px; font-size:14px;
+      border-radius:999px; border:3px solid #000; background:#fff; color:#111;
+      font-weight:800; cursor:pointer; font-family:inherit; letter-spacing:1px;
+    }
+    .admin-add-btn:active{ transform:translateY(1px); }
+
+    /* 奖品列表 */
+    .prize-list{
+      flex:1; min-height:0; overflow-y:auto;
+      display:flex; flex-direction:column; gap:8px;
+      -webkit-overflow-scrolling:touch;
+    }
+    .prize-item{
+      display:flex; align-items:center; gap:10px; padding:10px 12px;
+      border:2px solid #eee; border-radius:14px; background:#fafafa;
+      transition:all .15s ease;
+    }
+    .prize-item:hover{ border-color:#999; }
+    .prize-item-icon{ font-size:24px; flex:0 0 auto; }
+    .prize-item-name{
+      flex:1; font-size:14px; font-weight:700; color:#333;
+      min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .prize-item-count{ display:flex; align-items:center; gap:6px; font-size:13px; color:#555; }
+    .prize-item-count input{
+      width:50px; height:30px; border:2px solid #ccc; border-radius:8px;
+      text-align:center; font-size:14px; font-weight:700; font-family:inherit; outline:none;
+    }
+    .prize-item-count input:focus{ border-color:#111; }
+    .prize-item-delete{
+      flex:0 0 auto; width:30px; height:30px; border:2px solid #ccc; border-radius:50%;
+      background:#fff; color:#999; font-size:16px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+    }
+    .prize-item-delete:hover{ border-color:#FF3366; color:#FF3366; }
+
+    /* 管理入口链接 */
+    .admin-link{ text-align:center; margin-top:10px; }
+    .admin-link a{ font-size:12px; color:#999; text-decoration:none; cursor:pointer; }
+    .admin-link a:hover{ color:#555; }
+
+    /* 浮动抽奖按钮 */
+    .lottery-fab{
+      position:fixed; top:16px; right:16px; z-index:50;
+      width:44px; height:44px; border-radius:50%;
+      border:3px solid #000; background:#111; color:#fff;
+      font-size:20px; cursor:pointer; display:none;
+      align-items:center; justify-content:center;
+      box-shadow:0 4px 12px rgba(0,0,0,.2);
+      transition:transform .18s ease;
+    }
+    .lottery-fab:hover{ transform:scale(1.1); }
+    #badgePage.active .lottery-fab{ display:flex; }
+
+    @keyframes bounce{
+      0%,100%{ transform:translateY(0); }
+      50%{ transform:translateY(-8px); }
+    }
+    /* 同步状态指示 */
+    .sync-status{ font-size:11px; font-weight:700; text-align:center; margin-bottom:4px; }
+    .sync-status.online{ color:#10B981; }
+    .sync-status.offline{ color:#999; }
+
+    @media (max-width:420px){
+      #lotteryCard .title, #adminCard .title{ font-size:clamp(23px, 7.2vw, 28px); }
+      #lotteryCard .panel, #adminCard .panel{ padding:14px 14px 16px; }
+      .prize-icon{ font-size:28px; }
+      .prize-name{ font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <img id="exportBackground" src="图层 1.png" alt="" class="hidden" aria-hidden="true" />
+
+  <!-- ==================== 第1页：填写信息 ==================== -->
+  <div class="page active" id="infoPage">
+    <div class="stage"><div class="wrap scene">
+      <div class="badge" id="infoCard">
+        <div class="content">
+          <div class="title">填写信息</div>
+          <div class="subtitle">请先填写姓名和照片，再开始答题</div>
+          <div class="panel">
+            <div class="name-wrap">
+              <div class="label">你的名字</div>
+              <div class="field">
+                <input class="input" type="text" id="nameInput" placeholder="请输入姓名" maxlength="12" />
+              </div>
+            </div>
+            <div class="avatar-wrap">
+              <div class="avatar-upload" onclick="document.getElementById('photoInput').click()">
+                <img id="photoPreview" alt="预览" />
+              </div>
+              <div class="photo-tip">点击上传照片 <span class="photo-note">（可不上传）</span></div>
+            </div>
+            <input type="file" id="photoInput" accept="image/*" class="hidden" />
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="startBtn" onclick="startQuiz()">开始答题 →</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ==================== 第2页：趣味测试 ==================== -->
+  <div class="page" id="quizPage">
+    <div class="stage"><div class="wrap scene">
+      <div class="badge" id="quizCard">
+        <div class="content">
+          <div class="title">学生会知识趣味测试</div>
+          <div class="subtitle" id="quizProgress">第 1 / 5 题</div>
+          <div class="progress-wrap"><div class="progress-fill" id="progressBar" style="width:0%"></div></div>
+          <div class="panel">
+            <div class="q-text" id="qText"></div>
+            <div class="options" id="optionsList"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+            <button class="btn" id="nextBtn" disabled onclick="nextQuestion()">下一题</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ==================== 第3页：工作证 ==================== -->
+  <div class="page" id="badgePage">
+    <div class="badge-shell" id="badgeShell">
+      <div class="stage"><div class="badge-wrap scene">
+        <div class="strap" aria-hidden="true"></div>
+        <div class="strap-notch" aria-hidden="true"></div>
+        <main class="badge" id="badgeCard" role="group" aria-label="学生会工作证">
+          <section class="top">
+            <div class="logo-line" aria-label="学校标识">
+              <img src="CUHKSZ-Student-Union.png" alt="香港中文大学（深圳）学生会" class="logo-img" />
+            </div>
+            <h1 class="title">学生会工作证</h1>
+            <div class="info-row" aria-label="基本信息">
+              <div class="avatar" aria-hidden="true">
+                <img id="badgePhoto" alt="头像" />
+              </div>
+              <div class="fields">
+                <div class="line"><strong>姓名</strong><div class="value"><span id="badgeName" class="val-text"></span></div></div>
+                <div class="line"><strong>部门</strong><div class="value"><span id="badgeDept" class="val-text"></span></div></div>
+              </div>
+            </div>
+          </section>
+          <div class="panel ability-panel">
+            <div class="plot-title">个人能力</div>
+            <div id="abilityBars"></div>
+          </div>
+          <div class="badge-bottom">
+            <div class="panel dept-panel">
+              <div class="plot-title">部门匹配度</div>
+              <div id="scoreBars"></div>
+            </div>
+            <div class="promo-stack" aria-label="学生会宣传矩阵">
+              <div class="promo-crop promo-crop-left" role="img" aria-label="学生会宣传矩阵一"></div>
+              <div class="promo-crop promo-crop-center" role="img" aria-label="学生会宣传矩阵二"></div>
+              <div class="promo-crop promo-crop-right" role="img" aria-label="学生会宣传矩阵三"></div>
+            </div>
+          </div>
+          <img id="promoMatrix" src="Student-Union-Promo-Matrix.png" alt="" class="hidden" aria-hidden="true" />
+        </main>
+      </div></div>
+    </div>
+      <div class="action-row">
+        <button class="btn-sm btn-back" onclick="goToQuiz()">← 重新答题</button>
+        <button class="btn-sm btn-dl" onclick="downloadBadge()">↓ 保存工作证</button>
+      </div>
+    <button class="lottery-fab" onclick="enterLottery()" aria-label="去抽奖">🎁</button>
+  </div>
+
+  <!-- ==================== 第4页：幸运抽奖 ==================== -->
+  <div class="page" id="lotteryPage">
+    <div class="stage"><div class="wrap scene">
+      <div class="badge" id="lotteryCard">
+        <div class="content">
+          <div class="title">🎁 幸运抽奖</div>
+          <div class="subtitle">完成工作证，来抽取你的幸运奖品</div>
+          <div class="sync-status" id="syncStatusLottery">● 连接中...</div>
+          <div class="panel">
+            <div class="prize-grid" id="prizeGrid"></div>
+            <div class="lottery-result" id="lotteryResult">
+              <div class="result-icon" id="resultIcon"></div>
+              <div class="result-text" id="resultText"></div>
+              <div class="result-prize" id="resultPrize"></div>
+            </div>
+            <div class="admin-link">
+              <a onclick="enterAdmin()">工作人员入口 →</a>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="backToBadge()">← 返回</button>
+            <button class="btn" id="drawBtn" onclick="drawLottery()">开始抽奖</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ==================== 第5页：奖品管理后台 ==================== -->
+  <div class="page" id="adminPage">
+    <div class="stage"><div class="wrap scene">
+      <div class="badge" id="adminCard">
+        <div class="content">
+          <div class="title">⚙️ 奖品管理</div>
+          <div class="subtitle">工作人员后台 · 随时调整奖品类别和数量</div>
+          <div class="sync-status" id="syncStatusAdmin">● 连接中...</div>
+          <div class="panel">
+            <div class="admin-form">
+              <div class="row">
+                <div class="field" style="flex:0 0 50px;">
+                  <input class="input" type="text" id="newPrizeIcon" placeholder="🎁" maxlength="4" style="text-align:center;" />
+                </div>
+                <div class="field">
+                  <input class="input" type="text" id="newPrizeName" placeholder="奖品名称" maxlength="20" />
+                </div>
+                <div class="field field-small">
+                  <input class="input" type="number" id="newPrizeCount" placeholder="数量" min="0" max="999" style="text-align:center;" />
+                </div>
+                <button class="admin-add-btn" onclick="addPrize()">添加</button>
+              </div>
+            </div>
+            <div class="prize-list" id="prizeList"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="backToBadge()">← 返回</button>
+            <button class="btn" onclick="resetPrizes()">恢复默认</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <script src="html2canvas.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    /* ========== 部门映射 ========== */
+    var DEPT_MAP = {
+      A: { name: '文宣部',   icon: '🎨', desc: '活动海报设计、推送制作、视频拍摄剪辑' },
+      B: { name: '外联部',   icon: '🤝', desc: '校际交流、拉赞助、外联福利周' },
+      C: { name: '学术部',   icon: '📚', desc: 'Mentor项目、学长学姐经验茶话夜' },
+      D: { name: '活动部',   icon: '🎉', desc: '新生舞会、中秋晚会、读书周' },
+      E: { name: '权益部',   icon: '🛡️', desc: '春节大巴、食堂检查、权益信箱' },
+      F: { name: '社联部', icon: '🏛️', desc: '百团大战、社团文化节' }
+    };
+
+    /* ========== 5 道题目 ========== */
+    var QUESTIONS = [
+      {
+        text: '迎新周期间，你更愿意承担哪项工作？',
+        options: [
+          { key:'A', label:'拍摄Vlog、设计迎新海报和推送' },
+          { key:'B', label:'接待来访的外校嘉宾，引导参观' },
+          { key:'C', label:'组织新生学术导览讲座，介绍选课经验' },
+          { key:'D', label:'布置舞台音响，把控现场流程' },
+          { key:'E', label:'收集新生对宿舍、食堂的投诉并跟进' },
+          { key:'F', label:'协助各社团布置招新摊位，维持秩序' }
+        ]
+      },
+      {
+        text: '如果你来策划校园活动，你最看重哪个环节？',
+        options: [
+          { key:'A', label:'活动的视觉设计、宣传物料和线上曝光' },
+          { key:'B', label:'能否邀请到知名嘉宾或拉到充足赞助' },
+          { key:'C', label:'内容是否有深度，能否启发同学思考' },
+          { key:'D', label:'活动的趣味性和现场互动氛围' },
+          { key:'E', label:'活动后能否收集有效反馈以改进后续' },
+          { key:'F', label:'能否让多个社团联合参与，扩大影响力' }
+        ]
+      },
+      {
+        text: '你更享受在团队中扮演哪种角色？',
+        options: [
+          { key:'A', label:'用创意和设计吸引大家关注' },
+          { key:'B', label:'对外洽谈合作，争取资源' },
+          { key:'C', label:'提供知识内容，担任主讲或策划学术环节' },
+          { key:'D', label:'现场指挥调度，处理突发状况' },
+          { key:'E', label:'倾听成员意见，协调团队内部关系' },
+          { key:'F', label:'联络各社团代表，整合多方需求' }
+        ]
+      },
+      {
+        text: '你更愿意为同学们提供哪种帮助？',
+        options: [
+          { key:'A', label:'制作校园生活攻略、精美推送或短视频' },
+          { key:'B', label:'争取校外商家优惠福利，发放学生专属折扣' },
+          { key:'C', label:'举办考研/留学/实习经验分享会' },
+          { key:'D', label:'组织一场欢乐的游园会或体育赛事' },
+          { key:'E', label:'反馈食堂菜品、教室设施等日常问题' },
+          { key:'F', label:'指导新社团成立，协助社团审批场地' }
+        ]
+      },
+      {
+        text: '下面哪项任务最让你有成就感？',
+        options: [
+          { key:'A', label:'自己设计的主视觉被全场活动使用' },
+          { key:'B', label:'成功拉到一笔大额赞助，解决经费难题' },
+          { key:'C', label:'讲座结束后收到同学真诚的感谢' },
+          { key:'D', label:'看到自己策划的活动现场座无虚席、反响热烈' },
+          { key:'E', label:'解决了困扰同学们已久的某项生活设施问题' },
+          { key:'F', label:'帮助一个初创社团从无到有、顺利运转' }
+        ]
+      }
+    ];
+
+    /* ========== 默认头像（圆形占位 SVG） ========== */
+    var DEFAULT_PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">' +
+      '<circle cx="100" cy="100" r="100" fill="#f0f0f0"/>' +
+      '<circle cx="100" cy="80" r="32" fill="#ccc"/>' +
+      '<path d="M40 180 C40 140, 160 140, 160 180 Z" fill="#ccc"/>' +
+      '</svg>'
+    );
+
+    /* ========== 状态 ========== */
+    var currentQ = 0;
+    var answers = {};
+    var matchedDept = null;
+    var photoData = null;
+    var userName = '';
+    var questionAnimating = false;
+    var promoSliceCanvases = null;
+
+    /* ========== DOM ========== */
+    var $infoPage   = document.getElementById('infoPage');
+    var $quizPage   = document.getElementById('quizPage');
+    var $badgePage  = document.getElementById('badgePage');
+    var $qText      = document.getElementById('qText');
+    var $optionsList= document.getElementById('optionsList');
+    var $quizPanel  = document.querySelector('#quizCard .panel');
+    var $prevBtn    = document.getElementById('prevBtn');
+    var $nextBtn    = document.getElementById('nextBtn');
+    var $progressBar= document.getElementById('progressBar');
+    var $quizProgress = document.getElementById('quizProgress');
+    var $toast      = document.getElementById('toast');
+    var $scoreBars  = document.getElementById('scoreBars');
+
+    /* ========== Toast ========== */
+    var toastTimer = null;
+    function showToast(msg){
+      if(toastTimer) clearTimeout(toastTimer);
+      $toast.textContent = msg;
+      $toast.classList.add('show');
+      toastTimer = setTimeout(function(){ $toast.classList.remove('show'); }, 2000);
+    }
+
+    /* ========== 响应式尺寸刷新 ========== */
+    function fitBadgePage(){
+      var shell = document.getElementById('badgeShell');
+      if(!shell || !$badgePage.classList.contains('active')) return;
+      var stage = shell.querySelector('.stage');
+      var actions = $badgePage.querySelector('.action-row');
+      shell.style.setProperty('--badge-fit', 1);
+      var availableWidth = Math.max(1, window.innerWidth - 24);
+      var viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      var bottomGap = parseFloat(getComputedStyle(actions).bottom) || 8;
+      /* 给工作证外框的视觉曲率和描边预留空间，避免与固定按钮接触。 */
+      var actionSeparation = 16;
+      var availableHeight = Math.max(1, viewportHeight - bottomGap - actions.offsetHeight - actionSeparation);
+      var stageHeight = stage.offsetHeight;
+      var scale = Math.min(1, availableWidth / shell.offsetWidth, availableHeight / stageHeight);
+      shell.style.setProperty('--badge-fit', scale.toFixed(4));
+
+      /*
+       * transform 后的视觉边界在部分移动浏览器中会与 offsetHeight 略有差异。
+       * 直接测量最终可见边界，再做一次校正，确保真实间距不小于 18px。
+       */
+      var requiredVisualGap = 18;
+      var shellRect = shell.getBoundingClientRect();
+      var actionRect = actions.getBoundingClientRect();
+      var actualGap = actionRect.top - shellRect.bottom;
+      if(actualGap < requiredVisualGap && shellRect.height > 0){
+        var allowedVisualHeight = Math.max(1, actionRect.top - requiredVisualGap - shellRect.top);
+        scale = Math.max(.1, scale * allowedVisualHeight / shellRect.height);
+        shell.style.setProperty('--badge-fit', scale.toFixed(4));
+      }
+    }
+
+    function fitStage(){
+      /* 尺寸由 CSS 根据视口流式计算；保留入口供页面切换后触发布局刷新。 */
+      document.body.offsetHeight;
+      fitBadgePage();
+    }
+    window.addEventListener('load', fitStage);
+    window.addEventListener('resize', fitStage, { passive:true });
+    if(window.visualViewport) window.visualViewport.addEventListener('resize', fitStage, { passive:true });
+
+    /* ========== 开始答题 ========== */
+    function startQuiz(){
+      var nameVal = document.getElementById('nameInput').value.trim();
+      if(!nameVal){ showToast('请先填写姓名'); return; }
+      userName = nameVal;
+      switchPage('quizPage');
+      currentQ = 0;
+      answers = {};
+      renderQuestion();
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    /* ========== 渲染题目 ========== */
+    function renderQuestion(enterDirection){
+      var q = QUESTIONS[currentQ];
+      $qText.textContent = q.text;
+      $quizProgress.textContent = '第 ' + (currentQ+1) + ' / 5 题';
+      $progressBar.style.width = ((currentQ+1)/5*100) + '%';
+      $nextBtn.disabled = true;
+      $nextBtn.textContent = currentQ === 4 ? '生成工作证' : '下一题';
+      $prevBtn.style.display = currentQ === 0 ? 'none' : '';
+      $prevBtn.disabled = false;
+
+      var html = '';
+      q.options.forEach(function(opt){
+        var sel = answers[currentQ] === opt.key ? ' selected' : '';
+        html += '<div class="opt' + sel + '" data-key="' + opt.key + '" onclick="selectOption(this,\'' + opt.key + '\')">'
+          + '<span class="opt-letter">' + opt.key + '</span>'
+          + '<span class="opt-label">' + opt.label + '</span>'
+          + '</div>';
+      });
+      $optionsList.innerHTML = html;
+      if(answers[currentQ]) $nextBtn.disabled = false;
+
+      $quizPanel.classList.remove('question-exit-left','question-exit-right','question-enter-left','question-enter-right');
+      if(enterDirection){
+        // 强制一次重排，保证连续快速切题时入场动画仍会重新触发。
+        $quizPanel.offsetWidth;
+        $quizPanel.classList.add(enterDirection > 0 ? 'question-enter-right' : 'question-enter-left');
+        setTimeout(function(){
+          $quizPanel.classList.remove('question-enter-left','question-enter-right');
+        }, 300);
+      }
+    }
+
+    function selectOption(el, key){
+      if(questionAnimating) return;
+      answers[currentQ] = key;
+      var cards = $optionsList.querySelectorAll('.opt');
+      for(var i=0;i<cards.length;i++) cards[i].classList.remove('selected');
+      el.classList.add('selected');
+      $nextBtn.disabled = false;
+    }
+
+    function slideToQuestion(nextIndex, direction){
+      if(questionAnimating || nextIndex < 0 || nextIndex >= QUESTIONS.length) return;
+      questionAnimating = true;
+      $nextBtn.disabled = true;
+      $prevBtn.disabled = true;
+      $quizPanel.classList.remove('question-enter-left','question-enter-right');
+      $quizPanel.classList.add(direction > 0 ? 'question-exit-left' : 'question-exit-right');
+
+      var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var exitDuration = reducedMotion ? 0 : 170;
+      var enterDuration = reducedMotion ? 0 : 280;
+      setTimeout(function(){
+        currentQ = nextIndex;
+        renderQuestion(direction);
+        fitStage();
+        setTimeout(function(){ questionAnimating = false; }, enterDuration);
+      }, exitDuration);
+    }
+
+    function nextQuestion(){
+      if(currentQ < 4){
+        slideToQuestion(currentQ + 1, 1);
+      } else {
+        calculateResult();
+        generateBadge();
+      }
+    }
+
+    function prevQuestion(){
+      if(currentQ > 0){
+        slideToQuestion(currentQ - 1, -1);
+        window.scrollTo({ top:0, behavior:'smooth' });
+      }
+    }
+
+    /* ========== 计算结果（含并列随机选） ========== */
+    function calculateResult(){
+      var tally = { A:0, B:0, C:0, D:0, E:0, F:0 };
+      for(var i=0; i<5; i++){
+        var ans = answers[i];
+        if(ans && tally[ans] !== undefined) tally[ans]++;
+      }
+      // 找最高分
+      var maxVal = 0;
+      ['A','B','C','D','E','F'].forEach(function(k){
+        if(tally[k] > maxVal) maxVal = tally[k];
+      });
+      // 收集所有最高分部门
+      var winners = [];
+      ['A','B','C','D','E','F'].forEach(function(k){
+        if(tally[k] === maxVal) winners.push(k);
+      });
+      // 并列时随机选一个
+      matchedDept = winners[Math.floor(Math.random() * winners.length)];
+    }
+
+    function goToQuiz(){
+      switchPage('quizPage');
+      currentQ = 0;
+      answers = {};
+      renderQuestion();
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    /* ========== 随机分数条 ========== */
+    function randomScores(matchedKey){
+      var deptKeys = ['A','B','C','D','E','F'];
+      // 为除匹配部门外的部门生成随机分数，匹配部门设为最高档
+      var scores = {};
+      var maxOther = 0;
+      deptKeys.forEach(function(k){
+        if(k === matchedKey){
+          scores[k] = 85 + Math.floor(Math.random() * 16); // 85-100
+        } else {
+          scores[k] = 30 + Math.floor(Math.random() * 46); // 30-75
+          if(scores[k] > maxOther) maxOther = scores[k];
+        }
+      });
+      // 确保匹配部门是最高的
+      if(scores[matchedKey] <= maxOther){
+        scores[matchedKey] = maxOther + 5 + Math.floor(Math.random() * 16);
+      }
+      return scores;
+    }
+
+    function renderScoreBars(matchedKey){
+      var scores = randomScores(matchedKey);
+      var deptKeys = ['A','B','C','D','E','F'];
+      var html = '';
+      deptKeys.forEach(function(k){
+        var dept = DEPT_MAP[k];
+        var isMatch = k === matchedKey;
+        html += '<div class="score-row">'
+          + '<span class="score-label" style="color:' + (isMatch ? '#000' : '#888') + '">' + dept.name + '</span>'
+          + '<div class="score-bar-wrap">'
+          + '<div class="score-bar-fill ' + (isMatch ? 'highlight' : 'normal') + '" style="width:' + scores[k] + '%"></div>'
+          + '</div>'
+          + '</div>';
+      });
+      $scoreBars.innerHTML = html;
+    }
+
+    /* ========== 生成工作证 ========== */
+    function generateBadge(){
+      document.getElementById('badgePhoto').src = photoData || DEFAULT_PHOTO;
+      document.getElementById('badgeName').textContent = userName;
+      document.getElementById('badgeDept').textContent = DEPT_MAP[matchedDept].name;
+      renderScoreBars(matchedDept);
+      renderAbilityBars();
+      preparePromoCrops().then(function(){ fitStage(); }).catch(function(err){ console.error(err); });
+
+      switchPage('badgePage');
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    function renderAbilityBars(){
+      var abilities = [
+        { name:'续航能力',   color:'linear-gradient(90deg,#36D399,#10B981)' },
+        { name:'创作灵感',   color:'linear-gradient(90deg,#FB923C,#F97316)' },
+        { name:'社交能力',   color:'linear-gradient(90deg,#60A5FA,#3B82F6)' },
+        { name:'拖延能力',   color:'linear-gradient(90deg,#F472B6,#EC4899)' }
+      ];
+      var html = '';
+      abilities.forEach(function(item){
+        var val = 55 + Math.floor(Math.random() * 41); // 55-95
+        html += '<div class="score-row">'
+          + '<span class="score-label">' + item.name + '</span>'
+          + '<div class="score-bar-wrap">'
+          + '<div class="score-bar-fill" style="width:' + val + '%; background:' + item.color + '"></div>'
+          + '</div>'
+          + '</div>';
+      });
+      document.getElementById('abilityBars').innerHTML = html;
+    }
+
+    /* ========== 页面切换 ========== */
+    function switchPage(pageId){
+      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+      document.getElementById(pageId).classList.add('active');
+    }
+
+    /* ========== 照片上传 ========== */
+    var photoInput  = document.getElementById('photoInput');
+    var photoPreview = document.getElementById('photoPreview');
+    photoPreview.src = DEFAULT_PHOTO;
+
+    photoInput.addEventListener('change', function(){
+      var file = this.files && this.files[0];
+      if(!file) return;
+      if(file.size > 5*1024*1024){
+        showToast('图片大于 5MB，请重新选择');
+        this.value = '';
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(){ photoData = reader.result; photoPreview.src = reader.result; };
+      reader.readAsDataURL(file);
+    });
+
+    /* ========== 保存为图片（支持手机保存到相册） ========== */
+    var BADGE_EXPORT_SCALE = 3;
+
+    async function imageToDataURL(imgEl){
+      if(!imgEl || !imgEl.src) return '';
+      if(imgEl.src.indexOf('data:') === 0) return imgEl.src;
+
+      try{
+        var response = await fetch(imgEl.src, { cache:'force-cache' });
+        if(!response.ok) throw new Error('图片加载失败');
+        var blob = await response.blob();
+        return await new Promise(function(resolve, reject){
+          var reader = new FileReader();
+          reader.onload = function(){ resolve(reader.result); };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }catch(fetchError){
+        // 兼容直接双击 HTML（file://）打开的场景。
+        return await new Promise(function(resolve, reject){
+          function convert(){
+            try{
+              var canvas = document.createElement('canvas');
+              canvas.width = imgEl.naturalWidth;
+              canvas.height = imgEl.naturalHeight;
+              canvas.getContext('2d').drawImage(imgEl, 0, 0);
+              resolve(canvas.toDataURL('image/png'));
+            }catch(err){ reject(err); }
+          }
+          if(imgEl.complete && imgEl.naturalWidth) convert();
+          else {
+            imgEl.addEventListener('load', convert, { once:true });
+            imgEl.addEventListener('error', reject, { once:true });
+          }
+        });
+      }
+    }
+
+    function canvasToBlob(canvas){
+      return new Promise(function(resolve, reject){
+        canvas.toBlob(function(blob){
+          if(blob) resolve(blob);
+          else reject(new Error('PNG 生成失败'));
+        }, 'image/png');
+      });
+    }
+
+    function safeFileName(name){
+      return String(name || 'card').replace(/[\\/:*?"<>|]/g, '_');
+    }
+
+    function roundedPath(ctx, x, y, w, h, r){
+      var radius = Math.min(r, w/2, h/2);
+      var exponent = 0.5; // 四次超椭圆（squircle），与直线连接处曲率连续。
+      var cornerSteps = 16;
+
+      function superellipseCorner(cx, cy, startAngle, endAngle){
+        for(var i=1; i<=cornerSteps; i++){
+          var angle = startAngle + (endAngle-startAngle) * i / cornerSteps;
+          var cos = Math.cos(angle);
+          var sin = Math.sin(angle);
+          var px = cx + radius * Math.sign(cos) * Math.pow(Math.abs(cos), exponent);
+          var py = cy + radius * Math.sign(sin) * Math.pow(Math.abs(sin), exponent);
+          ctx.lineTo(px, py);
+        }
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      superellipseCorner(x + w - radius, y + radius, -Math.PI/2, 0);
+      ctx.lineTo(x + w, y + h - radius);
+      superellipseCorner(x + w - radius, y + h - radius, 0, Math.PI/2);
+      ctx.lineTo(x + radius, y + h);
+      superellipseCorner(x + radius, y + h - radius, Math.PI/2, Math.PI);
+      ctx.lineTo(x, y + radius);
+      superellipseCorner(x + radius, y + radius, Math.PI, Math.PI*1.5);
+      ctx.closePath();
+    }
+
+    function fillRounded(ctx, x, y, w, h, r, fill){
+      roundedPath(ctx, x, y, w, h, r);
+      ctx.fillStyle = fill;
+      ctx.fill();
+    }
+
+    function strokeRounded(ctx, x, y, w, h, r, color, lineWidth){
+      roundedPath(ctx, x, y, w, h, r);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+
+    function loadExportImage(imgEl){
+      return imageToDataURL(imgEl).then(function(src){
+        return new Promise(function(resolve, reject){
+          var img = new Image();
+          img.onload = function(){ resolve(img); };
+          img.onerror = reject;
+          img.src = src;
+        });
+      });
+    }
+
+    function drawContained(ctx, img, x, y, w, h){
+      var ratio = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+      var dw = img.naturalWidth * ratio;
+      var dh = img.naturalHeight * ratio;
+      ctx.drawImage(img, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+    }
+
+    function drawCover(ctx, img, x, y, w, h){
+      var ratio = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+      var dw = img.naturalWidth * ratio;
+      var dh = img.naturalHeight * ratio;
+      ctx.drawImage(img, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+    }
+
+    function drawVisibleContained(ctx, img, x, y, w, h){
+      var sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = img.naturalWidth;
+      sourceCanvas.height = img.naturalHeight;
+      var sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently:true });
+      sourceCtx.drawImage(img, 0, 0);
+
+      var pixels = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data;
+      var minX = sourceCanvas.width, minY = sourceCanvas.height, maxX = -1, maxY = -1;
+      for(var py=0; py<sourceCanvas.height; py++){
+        for(var px=0; px<sourceCanvas.width; px++){
+          if(pixels[(py * sourceCanvas.width + px) * 4 + 3] > 8){
+            if(px < minX) minX = px;
+            if(px > maxX) maxX = px;
+            if(py < minY) minY = py;
+            if(py > maxY) maxY = py;
+          }
+        }
+      }
+
+      if(maxX < minX || maxY < minY){
+        drawContained(ctx, img, x, y, w, h);
+        return;
+      }
+      var sw = maxX - minX + 1;
+      var sh = maxY - minY + 1;
+      var ratio = Math.min(w / sw, h / sh);
+      var dw = sw * ratio;
+      var dh = sh * ratio;
+      ctx.drawImage(img, minX, minY, sw, sh, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+    }
+
+    function getPromoSliceCanvases(img){
+      if(promoSliceCanvases) return promoSliceCanvases;
+      promoSliceCanvases = [];
+      var sliceWidth = Math.floor(img.naturalWidth / 3);
+
+      for(var sliceIndex=0; sliceIndex<3; sliceIndex++){
+        var sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = sliceIndex === 2 ? img.naturalWidth - sliceWidth * 2 : sliceWidth;
+        sourceCanvas.height = img.naturalHeight;
+        var sourceCtx = sourceCanvas.getContext('2d', { willReadFrequently:true });
+        sourceCtx.drawImage(
+          img,
+          sliceIndex * sliceWidth, 0, sourceCanvas.width, sourceCanvas.height,
+          0, 0, sourceCanvas.width, sourceCanvas.height
+        );
+
+        var pixels = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data;
+        var minX = sourceCanvas.width, minY = sourceCanvas.height, maxX = -1, maxY = -1;
+        for(var py=0; py<sourceCanvas.height; py++){
+          for(var px=0; px<sourceCanvas.width; px++){
+            if(pixels[(py * sourceCanvas.width + px) * 4 + 3] > 8){
+              if(px < minX) minX = px;
+              if(px > maxX) maxX = px;
+              if(py < minY) minY = py;
+              if(py > maxY) maxY = py;
+            }
+          }
+        }
+
+        if(maxX < minX || maxY < minY){
+          promoSliceCanvases.push(sourceCanvas);
+          continue;
+        }
+        var padding = 10;
+        var crop = document.createElement('canvas');
+        crop.width = maxX - minX + 1 + padding * 2;
+        crop.height = maxY - minY + 1 + padding * 2;
+        crop.getContext('2d').drawImage(
+          sourceCanvas,
+          minX, minY, maxX-minX+1, maxY-minY+1,
+          padding, padding, maxX-minX+1, maxY-minY+1
+        );
+        promoSliceCanvases.push(crop);
+      }
+      return promoSliceCanvases;
+    }
+
+    async function preparePromoCrops(){
+      var promoEl = document.getElementById('promoMatrix');
+      var promoImage = await loadExportImage(promoEl);
+      var slices = getPromoSliceCanvases(promoImage);
+      var targets = document.querySelectorAll('.promo-crop');
+      slices.forEach(function(slice, index){
+        if(!targets[index]) return;
+        var dataUrl = slice.toDataURL('image/png');
+        targets[index].style.backgroundImage = 'none';
+        var image = targets[index].querySelector('img');
+        if(!image){
+          image = document.createElement('img');
+          image.alt = '';
+          image.setAttribute('aria-hidden', 'true');
+          targets[index].appendChild(image);
+        }
+        image.src = dataUrl;
+      });
+    }
+
+    function drawCanvasContained(ctx, sourceCanvas, x, y, w, h){
+      var ratio = Math.min(w / sourceCanvas.width, h / sourceCanvas.height);
+      var dw = sourceCanvas.width * ratio;
+      var dh = sourceCanvas.height * ratio;
+      ctx.drawImage(sourceCanvas, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+    }
+
+    function drawCovered(ctx, img, x, y, w, h, radius){
+      var ratio = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+      var dw = img.naturalWidth * ratio;
+      var dh = img.naturalHeight * ratio;
+      ctx.save();
+      roundedPath(ctx, x, y, w, h, radius);
+      ctx.clip();
+      ctx.drawImage(img, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+      ctx.restore();
+    }
+
+    function drawFittedText(ctx, text, x, y, maxWidth){
+      var output = String(text || '');
+      while(output.length > 1 && ctx.measureText(output).width > maxWidth){
+        output = output.slice(0, -1);
+      }
+      if(output !== String(text || '')) output += '…';
+      ctx.fillText(output, x, y);
+    }
+
+    async function renderBadgeCanvasLegacy(){
+      var logoEl = document.querySelector('#badgeCard .logo-img');
+      var photoEl = document.getElementById('badgePhoto');
+      var promoEl = document.getElementById('promoMatrix');
+      var backgroundEl = document.getElementById('exportBackground');
+      var images = await Promise.all([
+        loadExportImage(logoEl),
+        loadExportImage(photoEl),
+        loadExportImage(promoEl),
+        loadExportImage(backgroundEl)
+      ]);
+      var promoSlices = getPromoSliceCanvases(images[2]);
+
+      var abilityRows = Array.prototype.map.call(document.querySelectorAll('#abilityBars .score-row'), function(row){
+        return {
+          name: row.querySelector('.score-label').textContent,
+          value: parseFloat(row.querySelector('.score-bar-fill').style.width) || 0,
+          color: row.querySelector('.score-bar-fill').style.background
+        };
+      });
+      var deptRows = Array.prototype.map.call(document.querySelectorAll('#scoreBars .score-row'), function(row){
+        return {
+          name: row.querySelector('.score-label').textContent,
+          value: parseFloat(row.querySelector('.score-bar-fill').style.width) || 0,
+          highlight: row.querySelector('.score-bar-fill').classList.contains('highlight')
+        };
+      });
+
+      var width = 440;
+      var height = 788;
+      var scale = 2;
+      var canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      var ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#000';
+
+      // 导出背景：先铺渐变作为兜底，再按页面相同的 cover 方式绘制背景图。
+      var pageGradient = ctx.createLinearGradient(0, 0, 0, height);
+      pageGradient.addColorStop(0, '#FFF4CC');
+      pageGradient.addColorStop(.5, '#e7d8f3');
+      pageGradient.addColorStop(1, '#BFA8FF');
+      ctx.fillStyle = pageGradient;
+      ctx.fillRect(0, 0, width, height);
+      drawCover(ctx, images[3], 0, 0, width, height);
+
+      // 四周保留 20px 背景安全边距，避免工作证贴边。
+      ctx.save();
+      ctx.translate(20, 20);
+
+      // 挂绳与卡扣
+      fillRounded(ctx, 160, 0, 80, 122, 10, '#B69CFF');
+      fillRounded(ctx, 145, 96, 110, 50, 18, '#000');
+      fillRounded(ctx, 151, 102, 98, 38, 12, '#fff');
+
+      // 卡片主体与双层边框
+      var cardGradient = ctx.createLinearGradient(0, 124, 0, 744);
+      cardGradient.addColorStop(0, '#f2e6b9');
+      cardGradient.addColorStop(.45, '#e7d8f3');
+      cardGradient.addColorStop(1, '#c7b5ff');
+      fillRounded(ctx, 0, 124, 400, 620, 32, cardGradient);
+      strokeRounded(ctx, 4, 128, 392, 612, 28, '#000', 8);
+      strokeRounded(ctx, 16, 140, 368, 588, 22, '#000', 4);
+
+      drawVisibleContained(ctx, images[0], 60, 158, 280, 48);
+      ctx.fillStyle = '#000';
+      ctx.font = '800 31px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('学生会工作证', 200, 248);
+
+      // 头像使用单寸/两寸照通用的 5:7 比例，信息框与其等高对齐。
+      var infoY = 276;
+      var infoHeight = 123.2;
+      fillRounded(ctx, 28, infoY, 88, infoHeight, 20, '#fff');
+      strokeRounded(ctx, 29.5, infoY + 1.5, 85, infoHeight - 3, 18, '#000', 3);
+      drawCovered(ctx, images[1], 35, infoY + 7, 74, infoHeight - 14, 13);
+      fillRounded(ctx, 128, infoY, 244, infoHeight, 20, '#fff');
+      strokeRounded(ctx, 129.5, infoY + 1.5, 241, infoHeight - 3, 18, '#000', 3);
+      ctx.textAlign = 'left';
+      ctx.font = '700 16px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillStyle = '#111';
+      ctx.fillText('姓名', 146, 312);
+      ctx.fillText('部门', 146, 371);
+      ctx.font = '600 16px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+      drawFittedText(ctx, userName, 208, 312, 144);
+      drawFittedText(ctx, DEPT_MAP[matchedDept].name, 208, 371, 144);
+      ctx.fillRect(206, 319, 148, 2);
+      ctx.fillRect(206, 378, 148, 2);
+
+      // 能力条
+      fillRounded(ctx, 28, 418, 344, 110, 24, '#fff');
+      strokeRounded(ctx, 29.5, 419.5, 341, 107, 22, '#000', 3);
+      ctx.textAlign = 'center';
+      ctx.font = '800 13px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillText('个人能力', 200, 442);
+      abilityRows.forEach(function(row, index){
+        var y = 452 + index * 17;
+        ctx.textAlign = 'right';
+        ctx.font = '700 10px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.fillStyle = '#333';
+        ctx.fillText(row.name, 106, y + 9);
+        fillRounded(ctx, 114, y, 238, 11, 7, '#eee');
+        var barGradient = ctx.createLinearGradient(114, 0, 352, 0);
+        var colors = index===0 ? ['#36D399','#10B981'] : index===1 ? ['#FB923C','#F97316'] : index===2 ? ['#60A5FA','#3B82F6'] : ['#F472B6','#EC4899'];
+        barGradient.addColorStop(0, colors[0]);
+        barGradient.addColorStop(1, colors[1]);
+        fillRounded(ctx, 114, y, 238 * row.value / 100, 11, 7, barGradient);
+      });
+
+      // 部门匹配度与纵向宣传矩阵
+      fillRounded(ctx, 28, 548, 242, 176, 22, '#fff');
+      strokeRounded(ctx, 29.5, 549.5, 239, 173, 20, '#000', 3);
+      ctx.textAlign = 'left';
+      ctx.font = '800 13px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+      ctx.fillStyle = '#111';
+      ctx.fillText('部门匹配度', 40, 575);
+      deptRows.forEach(function(row, index){
+        var y = 602 + index * 17;
+        ctx.textAlign = 'left';
+        ctx.font = '700 10px system-ui, "PingFang SC", "Microsoft YaHei", sans-serif';
+        ctx.fillStyle = row.highlight ? '#000' : '#777';
+        ctx.fillText(row.name, 40, y + 10);
+        fillRounded(ctx, 100, y, 158, 11, 7, '#eee');
+        var deptGradient = ctx.createLinearGradient(100, 0, 258, 0);
+        deptGradient.addColorStop(0, row.highlight ? '#FF6B6B' : '#A78BFA');
+        deptGradient.addColorStop(1, row.highlight ? '#FF3366' : '#7C5CFF');
+        fillRounded(ctx, 100, y, 158 * row.value / 100, 11, 7, deptGradient);
+      });
+
+      fillRounded(ctx, 280, 548, 92, 176, 22, '#fff');
+      strokeRounded(ctx, 281.5, 549.5, 89, 173, 20, '#000', 3);
+      promoSlices.forEach(function(slice, index){
+        drawCanvasContained(ctx, slice, 282, 558 + index * 53, 88, 46);
+      });
+
+      ctx.restore();
+
+      return canvas;
+    }
+
+    /*
+     * 直接从预览 DOM 导出，避免维护一套与 CSS 分离的手工 Canvas 坐标。
+     * Logo、头像和宣传矩阵都会先转成 data URL，保证本地文件页面也能稳定保存。
+     */
+    async function imageElementDataUrl(imgEl){
+      var img = await loadExportImage(imgEl);
+      var canvas = document.createElement('canvas');
+      var style = getComputedStyle(imgEl);
+      var shouldCover = style.objectFit === 'cover' && imgEl.clientWidth && imgEl.clientHeight;
+      if(shouldCover){
+        canvas.width = Math.max(1, Math.round(imgEl.clientWidth * 2));
+        canvas.height = Math.max(1, Math.round(imgEl.clientHeight * 2));
+        var ratio = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+        var drawWidth = img.naturalWidth * ratio;
+        var drawHeight = img.naturalHeight * ratio;
+        canvas.getContext('2d').drawImage(
+          img,
+          (canvas.width - drawWidth) / 2,
+          (canvas.height - drawHeight) / 2,
+          drawWidth,
+          drawHeight
+        );
+      }else{
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+      }
+      return canvas.toDataURL('image/png');
+    }
+
+    async function renderBadgeDomCanvasForeignLegacy(){
+      var source = document.querySelector('#badgePage .badge-wrap');
+      if(!source) throw new Error('找不到工作证预览');
+
+      var clone = source.cloneNode(true);
+      Array.prototype.forEach.call(clone.querySelectorAll('.hidden'), function(el){ el.remove(); });
+
+      var sourceImages = source.querySelectorAll('img:not(.hidden)');
+      var cloneImages = clone.querySelectorAll('img:not(.hidden)');
+      await Promise.all(Array.prototype.map.call(sourceImages, async function(imgEl, index){
+        cloneImages[index].setAttribute('src', await imageElementDataUrl(imgEl));
+        cloneImages[index].removeAttribute('srcset');
+      }));
+
+      var width = source.offsetWidth;
+      var height = source.offsetHeight;
+      /* 保留当前浏览器的响应式断点，避免导出 SVG 的 400px 画布误触发另一套媒体查询。 */
+      var renderViewportWidth = Math.max(width, window.innerWidth);
+      var cssText = Array.prototype.map.call(document.querySelectorAll('style'), function(style){
+        return style.textContent;
+      }).join('\n').replace(/\]\]>/g, ']]]]><![CDATA[>');
+      var cloneMarkup = new XMLSerializer().serializeToString(clone);
+      var exportCss = [
+        '#badgePage.export-root{display:block!important;width:' + width + 'px!important;height:' + height + 'px!important;min-height:0!important;padding:0!important;overflow:visible!important;}',
+        '#badgePage.export-root .badge-shell{display:block!important;width:' + width + 'px!important;transform:none!important;}',
+        '#badgePage.export-root .stage{width:' + width + 'px!important;}',
+        '#badgePage.export-root *,#badgePage.export-root *::before,#badgePage.export-root *::after{animation:none!important;transition:none!important;}'
+      ].join('\n');
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + renderViewportWidth + '" height="' + height + '" viewBox="0 0 ' + renderViewportWidth + ' ' + height + '">'
+        + '<foreignObject width="100%" height="100%">'
+        + '<div xmlns="http://www.w3.org/1999/xhtml" id="badgePage" class="active export-root">'
+        + '<style><![CDATA[' + cssText + '\n' + exportCss + ']]></style>'
+        + '<div class="badge-shell"><div class="stage">' + cloneMarkup + '</div></div>'
+        + '</div></foreignObject></svg>';
+
+      var svgBlob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
+      var svgUrl = URL.createObjectURL(svgBlob);
+      try{
+        var rendered = await new Promise(function(resolve, reject){
+          var img = new Image();
+          img.onload = function(){ resolve(img); };
+          img.onerror = function(){ reject(new Error('工作证预览渲染失败')); };
+          img.src = svgUrl;
+        });
+        var scale = 2;
+        var canvas = document.createElement('canvas');
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        var ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+        ctx.drawImage(rendered, 0, 0, width, height, 0, 0, width, height);
+        return canvas;
+      }finally{
+        URL.revokeObjectURL(svgUrl);
+      }
+    }
+
+    async function renderBadgeDomCanvas(){
+      if(typeof html2canvas !== 'function') throw new Error('导出组件未加载');
+      var source = document.querySelector('#badgePage .badge-wrap');
+      if(!source) throw new Error('找不到工作证预览');
+
+      var clone = source.cloneNode(true);
+      Array.prototype.forEach.call(clone.querySelectorAll('.hidden'), function(el){ el.remove(); });
+      var sourceImages = source.querySelectorAll('img:not(.hidden)');
+      var cloneImages = clone.querySelectorAll('img:not(.hidden)');
+      await Promise.all(Array.prototype.map.call(sourceImages, async function(imgEl, index){
+        cloneImages[index].src = await imageElementDataUrl(imgEl);
+        cloneImages[index].removeAttribute('srcset');
+      }));
+
+      /*
+       * html2canvas/SVG 尚不能稳定保留 corner-shape:squircle。
+       * 以四次超椭圆和圆弧在 45°方向的等效轮廓换算半径，视觉上匹配浏览器 G2 曲率。
+       */
+      var cornerSelector = '.badge,.panel,.strap,.strap-notch,.avatar,.avatar img,.fields,.promo-stack,.promo-crop,.score-bar-wrap,.score-bar-fill';
+      var sourceCorners = source.querySelectorAll(cornerSelector);
+      var cloneCorners = clone.querySelectorAll(cornerSelector);
+      Array.prototype.forEach.call(sourceCorners, function(sourceEl, index){
+        var radius = parseFloat(getComputedStyle(sourceEl).borderTopLeftRadius);
+        if(!cloneCorners[index] || !isFinite(radius)) return;
+        cloneCorners[index].style.setProperty('corner-shape', 'initial', 'important');
+        cloneCorners[index].style.setProperty('border-radius', Math.max(1, radius * .55).toFixed(2) + 'px', 'important');
+      });
+
+      var width = source.offsetWidth;
+      var height = source.offsetHeight;
+      var host = document.createElement('div');
+      var exportStyle = document.createElement('style');
+      var curveStyle = document.createElement('style');
+      curveStyle.textContent = [
+        '.export-capture .badge::before{corner-shape:initial!important;border-radius:17.6px!important;}',
+        '.export-capture .badge::after{corner-shape:initial!important;border-radius:13.2px!important;}'
+      ].join('\n');
+      document.head.appendChild(curveStyle);
+      exportStyle.textContent = [
+        '.export-capture .badge::before{box-shadow:none!important;border:8px solid #000!important;}',
+        '.export-capture .badge::after{box-shadow:none!important;border:4px solid #000!important;}',
+        '.export-capture .strap-notch{box-shadow:none!important;border:5px solid #000!important;}',
+        '.export-capture .avatar,.export-capture .fields,.export-capture .panel,.export-capture .promo-stack{box-shadow:none!important;position:relative!important;}',
+        '.export-capture .avatar::before,.export-capture .fields::before,.export-capture .panel::before,.export-capture .promo-stack::before{content:""!important;position:absolute!important;inset:0!important;border:3px solid #000!important;border-radius:inherit!important;box-sizing:border-box!important;pointer-events:none!important;z-index:6!important;}'
+      ].join('\n');
+      host.setAttribute('aria-hidden', 'true');
+      host.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + width + 'px;height:auto;overflow:visible;pointer-events:none;';
+      clone.classList.add('export-capture');
+      clone.style.animation = 'none';
+      Array.prototype.forEach.call(clone.querySelectorAll('*'), function(el){
+        el.style.animation = 'none';
+        el.style.transition = 'none';
+      });
+      host.appendChild(clone);
+      $badgePage.appendChild(host);
+
+      try{
+        width = Math.ceil(clone.getBoundingClientRect().width);
+        height = Math.ceil(Math.max(clone.scrollHeight, clone.getBoundingClientRect().height));
+        var renderOptions = {
+          backgroundColor:null,
+          scale:BADGE_EXPORT_SCALE,
+          width:width,
+          height:height,
+          windowWidth:window.innerWidth,
+          windowHeight:window.innerHeight,
+          useCORS:false,
+          allowTaint:false,
+          logging:false
+        };
+
+        try{
+          /* 原生 ForeignObject 会直接沿用浏览器的 corner-shape:squircle。 */
+          var nativeCanvas = await html2canvas(clone, Object.assign({}, renderOptions, {
+            foreignObjectRendering:true
+          }));
+          var nativePixels = nativeCanvas.getContext('2d').getImageData(
+            0, 0, nativeCanvas.width, nativeCanvas.height
+          ).data;
+          var hasVisiblePixel = false;
+          for(var pixelIndex=3; pixelIndex<nativePixels.length; pixelIndex+=4){
+            if(nativePixels[pixelIndex] > 0){ hasVisiblePixel = true; break; }
+          }
+          if(!hasVisiblePixel) throw new Error('原生导出结果为空');
+          return nativeCanvas;
+        }catch(nativeError){
+          /* 极少数浏览器不允许 ForeignObject 写入 Canvas，回退到兼容边框模式。 */
+          document.head.appendChild(exportStyle);
+          return await html2canvas(clone, renderOptions);
+        }
+      }finally{
+        host.remove();
+        exportStyle.remove();
+        curveStyle.remove();
+      }
+    }
+
+    async function renderBadgeCanvas(){
+      await preparePromoCrops();
+      if(document.fonts && document.fonts.ready) await document.fonts.ready;
+
+      var badgeCanvas = await renderBadgeDomCanvas();
+      var badgeWidth = badgeCanvas.width / BADGE_EXPORT_SCALE;
+      var badgeHeight = badgeCanvas.height / BADGE_EXPORT_SCALE;
+      var padding = 20;
+      var width = badgeWidth + padding * 2;
+      var height = badgeHeight + padding * 2;
+      var scale = BADGE_EXPORT_SCALE;
+      var canvas = document.createElement('canvas');
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      var ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      var pageGradient = ctx.createLinearGradient(0, 0, 0, height);
+      pageGradient.addColorStop(0, '#FFF4CC');
+      pageGradient.addColorStop(.5, '#e7d8f3');
+      pageGradient.addColorStop(1, '#BFA8FF');
+      ctx.fillStyle = pageGradient;
+      ctx.fillRect(0, 0, width, height);
+
+      var background = await loadExportImage(document.getElementById('exportBackground'));
+      drawCover(ctx, background, 0, 0, width, height);
+      ctx.drawImage(badgeCanvas, padding, padding, badgeWidth, badgeHeight);
+      return canvas;
+    }
+
+    async function downloadBadge(){
+      var downloadBtn = $badgePage.querySelector('.btn-dl');
+      if(downloadBtn) downloadBtn.disabled = true;
+      showToast('正在生成图片...');
+
+      try{
+        if(document.fonts && document.fonts.ready) await document.fonts.ready;
+        var canvas = await renderBadgeCanvas();
+        var pngBlob = await canvasToBlob(canvas);
+        var fileName = 'CUHKSZ_工作证_' + safeFileName(userName) + '.png';
+        fallbackDownload(pngBlob, fileName);
+        showToast('工作证已保存！');
+      }catch(err){
+        console.error(err);
+        showToast('保存失败，请稍后重试');
+      }finally{
+        if(downloadBtn) downloadBtn.disabled = false;
+      }
+    }
+
+    function fallbackDownload(blob, fileName){
+      var link = document.createElement('a');
+      var url = URL.createObjectURL(blob);
+      link.download = fileName;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+    }
+
+    /* ========== 快捷键 ========== */
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){
+        if($badgePage.classList.contains('active')) goToQuiz();
+        else if($quizPage.classList.contains('active')) switchPage('infoPage');
+      }
+    });
+
+    /* ========== 初始化 ========== */
+    photoPreview.src = DEFAULT_PHOTO;
+
+    /* ========== 抽奖 & 奖品管理 ========== */
+    var PRIZE_STORAGE_KEY = 'cuhsz_lottery_prizes_v1';
+    var lotterySpinning = false;
+
+    /* ========== Firebase 实时同步 ==========
+       使用步骤：
+       1. 访问 https://console.firebase.google.com/ 创建项目
+       2. 左侧选 "Build → Realtime Database" → 创建数据库 → 选"测试模式"
+       3. 项目设置 → 常规 → "应用"部分 → 添加 Web 应用 → 复制配置
+       4. 把下方占位符替换为你自己的配置值
+    */
+    var FIREBASE_CONFIG = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    var PRIZE_REF = 'cuhsz_lottery/prizes';
+    var fbDatabase = null;
+    var fbReady = false;
+    var prizesCache = null;
+
+    function getDefaultPrizes(){
+      return [
+        { id:1, icon:'🏆', name:'一等奖', count:1 },
+        { id:2, icon:'🥈', name:'二等奖', count:3 },
+        { id:3, icon:'🥉', name:'三等奖', count:5 },
+        { id:4, icon:'🎁', name:'参与奖', count:10 }
+      ];
+    }
+
+    function loadPrizesLocal(){
+      try{
+        var raw = localStorage.getItem(PRIZE_STORAGE_KEY);
+        if(raw){
+          var parsed = JSON.parse(raw);
+          if(Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }catch(e){}
+      return getDefaultPrizes();
+    }
+
+    function loadPrizes(){
+      if(fbReady && prizesCache) return prizesCache;
+      return loadPrizesLocal();
+    }
+
+    function savePrizes(prizes){
+      if(fbReady){
+        fbDatabase.ref(PRIZE_REF).set(prizes);
+      } else {
+        try{ localStorage.setItem(PRIZE_STORAGE_KEY, JSON.stringify(prizes)); }catch(e){}
+      }
+    }
+
+    function initFirebase(){
+      if(FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
+        console.log('Firebase 配置未填写，使用本地模式');
+        prizesCache = loadPrizesLocal();
+        updateSyncStatus(false);
+        return;
+      }
+      try{
+        if(typeof firebase === 'undefined') throw new Error('Firebase SDK 未加载');
+        firebase.initializeApp(FIREBASE_CONFIG);
+        fbDatabase = firebase.database();
+        fbReady = true;
+        /* 实时监听 — 任何客户端的改动都会即时推送到所有人 */
+        fbDatabase.ref(PRIZE_REF).on('value', function(snapshot){
+          var data = snapshot.val();
+          if(data && Array.isArray(data) && data.length > 0){
+            prizesCache = data;
+          } else if(data === null){
+            var def = getDefaultPrizes();
+            fbDatabase.ref(PRIZE_REF).set(def);
+            prizesCache = def;
+          } else {
+            prizesCache = getDefaultPrizes();
+          }
+          updateSyncStatus(true);
+          onPrizesChanged();
+        }, function(err){
+          console.error('Firebase 监听失败:', err);
+          updateSyncStatus(false);
+          if(!prizesCache) prizesCache = loadPrizesLocal();
+        });
+      }catch(e){
+        console.error('Firebase 初始化失败，回退到 localStorage:', e);
+        fbReady = false;
+        prizesCache = loadPrizesLocal();
+        updateSyncStatus(false);
+      }
+    }
+
+    /* 数据变化时自动刷新当前页面 UI */
+    function onPrizesChanged(){
+      if(lotterySpinning) return;
+      var lotteryActive = document.getElementById('lotteryPage').classList.contains('active');
+      var adminActive = document.getElementById('adminPage').classList.contains('active');
+      var result = document.getElementById('lotteryResult');
+      if(lotteryActive && !result.classList.contains('show')){
+        refreshPrizeGrid();
+      }
+      if(adminActive){
+        renderPrizeList();
+      }
+    }
+
+    function updateSyncStatus(online){
+      var els = document.querySelectorAll('.sync-status');
+      for(var i=0; i<els.length; i++){
+        els[i].textContent = online ? '● 实时同步' : '● 本地模式';
+        els[i].className = 'sync-status ' + (online ? 'online' : 'offline');
+      }
+    }
+
+    function getAvailablePrizes(){
+      return loadPrizes().filter(function(p){ return p.count > 0; });
+    }
+
+    function getTotalPrizeCount(){
+      return getAvailablePrizes().reduce(function(sum, p){ return sum + p.count; }, 0);
+    }
+
+    function refreshPrizeGrid(){
+      var prizes = loadPrizes();
+      var grid = document.getElementById('prizeGrid');
+      if(!grid) return;
+      if(prizes.length === 0){
+        grid.innerHTML = '<div class="prize-empty">暂无奖品，请联系工作人员设置</div>';
+        return;
+      }
+      var html = '';
+      prizes.forEach(function(p){
+        html += '<div class="prize-cell" data-id="' + p.id + '">'
+          + '<div class="prize-icon">' + p.icon + '</div>'
+          + '<div class="prize-name">' + p.name + '</div>'
+          + '</div>';
+      });
+      grid.innerHTML = html;
+    }
+
+    function renderPrizeGrid(){
+      refreshPrizeGrid();
+      var result = document.getElementById('lotteryResult');
+      if(result) result.classList.remove('show');
+      var drawBtn = document.getElementById('drawBtn');
+      if(drawBtn){ drawBtn.disabled = false; drawBtn.textContent = '开始抽奖'; }
+      var grid = document.getElementById('prizeGrid');
+      if(grid) grid.style.display = '';
+    }
+
+    function renderPrizeList(){
+      var prizes = loadPrizes();
+      var list = document.getElementById('prizeList');
+      if(!list) return;
+      if(prizes.length === 0){
+        list.innerHTML = '<div class="prize-empty">暂无奖品，请在上方添加</div>';
+        return;
+      }
+      var html = '';
+      prizes.forEach(function(p){
+        html += '<div class="prize-item" data-id="' + p.id + '">'
+          + '<span class="prize-item-icon">' + p.icon + '</span>'
+          + '<span class="prize-item-name">' + p.name + '</span>'
+          + '<div class="prize-item-count">数量 '
+          + '<input type="number" value="' + p.count + '" min="0" max="999" '
+          + 'onchange="updatePrizeCount(' + p.id + ', this.value)" /></div>'
+          + '<button class="prize-item-delete" onclick="deletePrize(' + p.id + ')" aria-label="删除">×</button>'
+          + '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    function addPrize(){
+      var iconEl = document.getElementById('newPrizeIcon');
+      var nameEl = document.getElementById('newPrizeName');
+      var countEl = document.getElementById('newPrizeCount');
+      var icon = iconEl.value.trim() || '🎁';
+      var name = nameEl.value.trim();
+      var count = parseInt(countEl.value, 10);
+      if(!name){ showToast('请输入奖品名称'); return; }
+      if(isNaN(count) || count < 0){ showToast('请输入有效数量'); return; }
+
+      var prizes = loadPrizes();
+      var maxId = prizes.reduce(function(max, p){ return Math.max(max, p.id); }, 0);
+      prizes.push({ id:maxId+1, icon:icon, name:name, count:count });
+      savePrizes(prizes);
+
+      iconEl.value = '';
+      nameEl.value = '';
+      countEl.value = '';
+      renderPrizeList();
+      showToast('已添加：' + name);
+    }
+
+    function updatePrizeCount(id, value){
+      var count = Math.max(0, Math.min(999, parseInt(value, 10) || 0));
+      var prizes = loadPrizes();
+      for(var i=0; i<prizes.length; i++){
+        if(prizes[i].id === id){ prizes[i].count = count; break; }
+      }
+      savePrizes(prizes);
+    }
+
+    function deletePrize(id){
+      var prizes = loadPrizes().filter(function(p){ return p.id !== id; });
+      savePrizes(prizes);
+      renderPrizeList();
+      showToast('已删除');
+    }
+
+    function resetPrizes(){
+      savePrizes(getDefaultPrizes());
+      renderPrizeList();
+      showToast('已恢复默认奖品');
+    }
+
+    function drawLottery(){
+      if(lotterySpinning) return;
+
+      var result = document.getElementById('lotteryResult');
+      result.classList.remove('show');
+
+      var available = getAvailablePrizes();
+      if(available.length === 0){
+        refreshPrizeGrid();
+        var grid = document.getElementById('prizeGrid');
+        grid.style.display = '';
+        var drawBtn = document.getElementById('drawBtn');
+        drawBtn.textContent = '奖品已抽完';
+        drawBtn.disabled = true;
+        showToast('奖品已抽完，请联系工作人员补充');
+        return;
+      }
+
+      refreshPrizeGrid();
+      var grid = document.getElementById('prizeGrid');
+      grid.style.display = '';
+
+      lotterySpinning = true;
+      var drawBtn = document.getElementById('drawBtn');
+      drawBtn.disabled = true;
+      drawBtn.textContent = '抽奖中...';
+
+      var cells = grid.querySelectorAll('.prize-cell');
+      var total = getTotalPrizeCount();
+
+      /* 按剩余数量加权随机选奖品 */
+      var rand = Math.random() * total;
+      var winner = available[available.length - 1];
+      var cum = 0;
+      for(var i=0; i<available.length; i++){
+        cum += available[i].count;
+        if(rand < cum){ winner = available[i]; break; }
+      }
+
+      /* 旋转高亮动画 */
+      var spinCount = 0;
+      var maxSpins = 18;
+      var interval = 70;
+      var currentCell = -1;
+
+      function clearHighlight(){
+        for(var j=0; j<cells.length; j++) cells[j].classList.remove('spinning');
+      }
+
+      function spin(){
+        clearHighlight();
+        currentCell = (currentCell + 1) % cells.length;
+        cells[currentCell].classList.add('spinning');
+
+        spinCount++;
+        if(spinCount < maxSpins){
+          if(spinCount > maxSpins * 0.6) interval += 25;
+          setTimeout(spin, interval);
+        } else {
+          clearHighlight();
+          var winIndex = 0;
+          for(var k=0; k<cells.length; k++){
+            if(parseInt(cells[k].getAttribute('data-id'), 10) === winner.id){
+              winIndex = k; break;
+            }
+          }
+          cells[winIndex].classList.add('won');
+
+          /* 扣减中奖奖品库存 — Firebase 事务保证多人并发安全 */
+          if(fbReady){
+            fbDatabase.ref(PRIZE_REF).transaction(function(currentData){
+              if(!currentData) return currentData;
+              for(var m=0; m<currentData.length; m++){
+                if(currentData[m].id === winner.id && currentData[m].count > 0){
+                  currentData[m].count--;
+                  break;
+                }
+              }
+              return currentData;
+            });
+          } else {
+            var prizes = loadPrizesLocal();
+            for(var m=0; m<prizes.length; m++){
+              if(prizes[m].id === winner.id){
+                prizes[m].count = Math.max(0, prizes[m].count - 1);
+                break;
+              }
+            }
+            try{ localStorage.setItem(PRIZE_STORAGE_KEY, JSON.stringify(prizes)); }catch(e){}
+          }
+
+          /* 展示抽奖结果 */
+          setTimeout(function(){
+            grid.style.display = 'none';
+            document.getElementById('resultIcon').textContent = winner.icon;
+            document.getElementById('resultText').textContent = '🎉 恭喜你抽中！';
+            document.getElementById('resultPrize').textContent = winner.name;
+            result.classList.add('show');
+
+            drawBtn.disabled = false;
+            drawBtn.textContent = '再抽一次';
+            lotterySpinning = false;
+          }, 600);
+        }
+      }
+
+      spin();
+    }
+
+    function enterLottery(){
+      switchPage('lotteryPage');
+      renderPrizeGrid();
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    function enterAdmin(){
+      switchPage('adminPage');
+      renderPrizeList();
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    function backToBadge(){
+      switchPage('badgePage');
+      fitStage();
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    /* 管理后台 URL hash 访问 */
+    function checkAdminHash(){
+      if(window.location.hash === '#admin'){
+        enterAdmin();
+      }
+    }
+    window.addEventListener('hashchange', checkAdminHash);
+
+    /* 新页面 Escape 键返回工作证 */
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){
+        if(document.getElementById('lotteryPage').classList.contains('active')){
+          backToBadge();
+        } else if(document.getElementById('adminPage').classList.contains('active')){
+          backToBadge();
+        }
+      }
+    });
+
+    /* 初始化奖品数据 + Firebase 实时同步 */
+    initFirebase();
+    checkAdminHash();
+  </script>
+</body>
+</html>
