@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>幸运抽奖 · CUHK-Shenzhen</title>
+  <style>
+    /* ========== 设计变量 ========== */
+    :root{
+      --border: #000;
+      --border2: #000;
+      --panel: #ffffff;
+      --bg-top: #FFF4CC;
+      --bg-bottom: #BFA8FF;
+      --purple: #A78BFA;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0; min-height:100svh;
+      background:url("图层 1.png") no-repeat center/cover;
+      background-image: url("图层 1.png"), linear-gradient(180deg,#FFF4CC 0%,#e7d8f3 50%,#BFA8FF 100%);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow-x:hidden; overflow-y:auto;
+    }
+
+    /* ========== 响应式舞台 ========== */
+    .stage{ position:relative; width:min(400px, calc(100vw - 24px)); }
+    .wrap{ position:relative; width:100%; }
+    .badge-wrap{ position:relative; width:100%; padding-top:124px; }
+
+    /* ========== 证件卡外观 ========== */
+    .badge{
+      position:relative; z-index:1; width:100%; border-radius:32px;
+      background: linear-gradient(
+        to bottom,
+        #f2e6b9 0%,
+        #e7d8f3 45%,
+        #c7b5ff 100%
+      );
+      display:flex; flex-direction:column;
+    }
+    .badge::before{ /* 外层粗黑边 */
+      content:""; position:absolute; inset:0; border-radius:32px;
+      box-shadow:0 0 0 8px var(--border2) inset; pointer-events:none; z-index:3;
+    }
+    .badge::after{ /* 内层细黑边 */
+      content:""; position:absolute; inset:14px; border-radius:24px;
+      box-shadow:0 0 0 4px var(--border) inset; pointer-events:none; z-index:3;
+    }
+    .content{ position:relative; z-index:1; display:flex; flex-direction:column; }
+
+    /* G2 连续曲率 */
+    .badge, .badge::before, .badge::after,
+    .progress-wrap, .progress-fill, .panel,
+    .opt, .btn, .toast,
+    .prize-cell, .lottery-result{
+      corner-shape:squircle;
+    }
+
+    /* ========== 标题 ========== */
+    .title{
+      text-align:center; font-size:32px; font-weight:800; letter-spacing:2px;
+      margin:12px 0 0; position:relative; z-index:2;
+    }
+    .subtitle{
+      text-align:center; font-size:13px; color:#555; margin-bottom:4px;
+      position:relative; z-index:2;
+    }
+
+    /* ========== 通用面板 ========== */
+    .panel{
+      margin:18px 28px 0; background:var(--panel); border-radius:24px;
+      box-shadow: inset 0 0 0 4px var(--border);
+      padding:18px 18px 20px; position:relative; z-index:2;
+    }
+
+    /* ========== 按钮 ========== */
+    .btn-row{
+      margin:18px 28px 24px; position:relative; z-index:2;
+      display:flex; gap:12px;
+    }
+    .btn-row .btn{ flex:1; }
+    .btn{
+      width:100%; height:44px; border-radius:999px; border:4px solid #000;
+      background:#111; color:#fff; font-size:18px; font-weight:800;
+      letter-spacing:2px; cursor:pointer; font-family:inherit;
+      white-space:nowrap; min-width:0; padding:0 14px;
+    }
+    .btn:active{ transform:translateY(1px); }
+    .btn:disabled{ opacity:.35; cursor:not-allowed; }
+    .btn-outline{
+      background:#fff; color:#111;
+      border:3px solid #000;
+    }
+
+    /* ========== Toast ========== */
+    .toast{
+      position:fixed; top:20px; left:50%;
+      transform:translateX(-50%) translateY(-120px);
+      background:#111; color:#fff; padding:10px 22px; border-radius:999px;
+      border:3px solid #000; font-size:14px; font-weight:700;
+      z-index:999; opacity:0;
+      transition:all .35s cubic-bezier(.16,1,.3,1);
+      pointer-events:none; white-space:nowrap;
+    }
+    .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+
+    /* ========== 动画 ========== */
+    @keyframes stageEnter{
+      from{ opacity:0; transform:translateY(12px) scale(.985); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes badgeReveal{
+      from{ opacity:0; transform:translateY(18px) scale(.975); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes bounce{
+      0%,100%{ transform:translateY(0); }
+      50%{ transform:translateY(-8px); }
+    }
+
+    .stage{ animation:stageEnter .46s cubic-bezier(.2,.8,.2,1) both; }
+
+    @media (hover:hover){
+      .btn{ transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease; }
+      .btn:hover:not(:disabled){ transform:translateY(-2px); box-shadow:0 5px 0 rgba(0,0,0,.16); }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *, *::before, *::after{
+        animation-duration:.01ms !important;
+        animation-delay:0ms !important;
+        transition-duration:.01ms !important;
+        scroll-behavior:auto !important;
+      }
+    }
+
+    /* ========== 页面布局 ========== */
+    .page{
+      width:100%; min-height:100svh;
+      padding:16px max(12px, env(safe-area-inset-right)) 16px max(12px, env(safe-area-inset-left));
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+    }
+
+    /* ========== 抽奖卡片 ========== */
+    #lotteryCard{ min-height:560px; }
+    #lotteryCard .title{ margin-top:32px; font-size:30px; letter-spacing:1px; }
+    #lotteryCard .panel{
+      min-height:340px; display:flex; flex-direction:column; overflow:hidden;
+    }
+
+    /* 奖品网格 */
+    .prize-grid{
+      display:grid; grid-template-columns:repeat(2, 1fr); gap:10px;
+      flex:1; min-height:0; align-content:center;
+    }
+    .prize-cell{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:14px 8px; border:2.5px solid #ccc; border-radius:18px;
+      background:#fafafa; transition:all .12s ease; text-align:center;
+    }
+    .prize-cell.spinning{ border-color:#A78BFA; background:#f5f0ff; transform:scale(1.06); }
+    .prize-cell.won{
+      border-color:#FF3366; background:linear-gradient(135deg,#FFF4CC,#f5f0ff);
+      transform:scale(1.08);
+    }
+    .prize-icon{ font-size:32px; margin-bottom:4px; line-height:1; }
+    .prize-name{ font-size:13px; font-weight:700; color:#333; line-height:1.3; }
+    .prize-empty{ grid-column:1/-1; text-align:center; padding:24px; color:#999; font-size:14px; }
+
+    /* 抽奖结果 */
+    .lottery-result{
+      display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    }
+    .lottery-result.show{ display:flex; animation:badgeReveal .5s ease; }
+    .result-icon{ font-size:56px; animation:bounce 1s ease infinite; }
+    .result-text{ font-size:18px; font-weight:800; text-align:center; }
+    .result-prize{ font-size:24px; font-weight:800; color:#FF3366; }
+
+    /* 同步状态指示 */
+    .sync-status{ font-size:11px; font-weight:700; text-align:center; margin-bottom:4px; }
+    .sync-status.online{ color:#10B981; }
+    .sync-status.offline{ color:#999; }
+
+    /* 管理入口链接 */
+    .admin-link{ text-align:center; margin-top:10px; }
+    .admin-link a{ font-size:12px; color:#999; text-decoration:none; cursor:pointer; }
+    .admin-link a:hover{ color:#555; }
+
+    /* ========== 响应式 ========== */
+    @media (max-width:420px){
+      .page{ padding-top:max(12px, env(safe-area-inset-top)); padding-bottom:max(12px, env(safe-area-inset-bottom)); }
+      .stage{ width:min(100%, 376px); }
+      .badge-wrap{ padding-top:112px; }
+      #lotteryCard .title{ font-size:clamp(23px, 7.2vw, 28px); letter-spacing:1px; }
+      #lotteryCard .panel{ padding:14px 14px 16px; }
+      .title{ font-size:29px; }
+      .panel{ margin-left:22px; margin-right:22px; padding:16px 15px 18px; }
+      .btn-row{ margin:15px 22px 20px; gap:8px; }
+      .btn{ font-size:clamp(13px, 4.1vw, 17px); letter-spacing:1px; padding-inline:8px; }
+      .prize-icon{ font-size:28px; }
+      .prize-name{ font-size:12px; }
+    }
+
+    @media (max-width:350px){
+      .page{ padding-left:8px; padding-right:8px; }
+      .stage{ width:100%; }
+      .panel{ margin-left:18px; margin-right:18px; }
+      .btn-row{ margin-left:18px; margin-right:18px; }
+      .btn{ height:42px; font-size:12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+
+  <!-- 抽奖页面 -->
+  <div class="page">
+    <div class="stage"><div class="wrap">
+      <div class="badge" id="lotteryCard">
+        <div class="content">
+          <div class="title">🎁 幸运抽奖</div>
+          <div class="subtitle">来抽取你的幸运奖品</div>
+          <div class="sync-status" id="syncStatus">● 连接中...</div>
+          <div class="panel">
+            <div class="prize-grid" id="prizeGrid"></div>
+            <div class="lottery-result" id="lotteryResult">
+              <div class="result-icon" id="resultIcon"></div>
+              <div class="result-text" id="resultText"></div>
+              <div class="result-prize" id="resultPrize"></div>
+            </div>
+            <div class="admin-link">
+              <a href="admin.html">工作人员入口 →</a>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="location.href='index.html'">← 返回首页</button>
+            <button class="btn" id="drawBtn" onclick="drawLottery()">开始抽奖</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    /* ========== Firebase 实时同步 ========== */
+    var FIREBASE_CONFIG = {
+      apiKey: "AIzaSyAgbwA5N30mPBpSoWy4HcwemmQ2GOkCUug",
+      authDomain: "cuhsz-lottery.firebaseapp.com",
+      databaseURL: "https://cuhsz-lottery-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cuhsz-lottery",
+      storageBucket: "cuhsz-lottery.firebasestorage.app",
+      messagingSenderId: "885939478368",
+      appId: "1:885939478368:web:1321f120cb7af42904c805"
+    };
+    var PRIZE_REF = 'cuhsz_lottery/prizes';
+    var PRIZE_STORAGE_KEY = 'cuhsz_lottery_prizes_v1';
+    var fbDatabase = null;
+    var fbReady = false;
+    var prizesCache = null;
+    var lotterySpinning = false;
+
+    /* ========== DOM ========== */
+    var $toast = document.getElementById('toast');
+    var $prizeGrid = document.getElementById('prizeGrid');
+    var $lotteryResult = document.getElementById('lotteryResult');
+    var $drawBtn = document.getElementById('drawBtn');
+    var $resultIcon = document.getElementById('resultIcon');
+    var $resultText = document.getElementById('resultText');
+    var $resultPrize = document.getElementById('resultPrize');
+    var $syncStatus = document.getElementById('syncStatus');
+
+    /* ========== Toast ========== */
+    var toastTimer = null;
+    function showToast(msg){
+      if(toastTimer) clearTimeout(toastTimer);
+      $toast.textContent = msg;
+      $toast.classList.add('show');
+      toastTimer = setTimeout(function(){ $toast.classList.remove('show'); }, 2000);
+    }
+
+    /* ========== 奖品数据 ========== */
+    function getDefaultPrizes(){
+      return [
+        { id:1, icon:'🏆', name:'一等奖', count:1 },
+        { id:2, icon:'🥈', name:'二等奖', count:3 },
+        { id:3, icon:'🥉', name:'三等奖', count:5 },
+        { id:4, icon:'🎁', name:'参与奖', count:10 }
+      ];
+    }
+
+    function loadPrizesLocal(){
+      try{
+        var raw = localStorage.getItem(PRIZE_STORAGE_KEY);
+        if(raw){
+          var parsed = JSON.parse(raw);
+          if(Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }catch(e){}
+      return getDefaultPrizes();
+    }
+
+    function loadPrizes(){
+      if(fbReady && prizesCache) return prizesCache;
+      return loadPrizesLocal();
+    }
+
+    function savePrizes(prizes){
+      if(fbReady){
+        fbDatabase.ref(PRIZE_REF).set(prizes);
+      } else {
+        try{ localStorage.setItem(PRIZE_STORAGE_KEY, JSON.stringify(prizes)); }catch(e){}
+      }
+    }
+
+    /* ========== Firebase 初始化 ========== */
+    function initFirebase(){
+      if(FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY'){
+        console.log('Firebase 配置未填写，使用本地模式');
+        prizesCache = loadPrizesLocal();
+        updateSyncStatus(false);
+        onPrizesChanged();
+        return;
+      }
+      try{
+        if(typeof firebase === 'undefined') throw new Error('Firebase SDK 未加载');
+        firebase.initializeApp(FIREBASE_CONFIG);
+        fbDatabase = firebase.database();
+        fbReady = true;
+        /* 实时监听 — 任何客户端的改动都会即时推送到所有人 */
+        fbDatabase.ref(PRIZE_REF).on('value', function(snapshot){
+          var data = snapshot.val();
+          if(data && Array.isArray(data) && data.length > 0){
+            prizesCache = data;
+          } else if(data === null){
+            var def = getDefaultPrizes();
+            fbDatabase.ref(PRIZE_REF).set(def);
+            prizesCache = def;
+          } else {
+            prizesCache = getDefaultPrizes();
+          }
+          updateSyncStatus(true);
+          onPrizesChanged();
+        }, function(err){
+          console.error('Firebase 监听失败:', err);
+          updateSyncStatus(false);
+          if(!prizesCache) prizesCache = loadPrizesLocal();
+          onPrizesChanged();
+        });
+      }catch(e){
+        console.error('Firebase 初始化失败，回退到 localStorage:', e);
+        fbReady = false;
+        prizesCache = loadPrizesLocal();
+        updateSyncStatus(false);
+        onPrizesChanged();
+      }
+    }
+
+    /* 数据变化时自动刷新 UI */
+    function onPrizesChanged(){
+      if(lotterySpinning) return;
+      if(!$lotteryResult.classList.contains('show')){
+        refreshPrizeGrid();
+      }
+    }
+
+    function updateSyncStatus(online){
+      $syncStatus.textContent = online ? '● 实时同步' : '● 本地模式';
+      $syncStatus.className = 'sync-status ' + (online ? 'online' : 'offline');
+    }
+
+    function getAvailablePrizes(){
+      return loadPrizes().filter(function(p){ return p.count > 0; });
+    }
+
+    function getTotalPrizeCount(){
+      return getAvailablePrizes().reduce(function(sum, p){ return sum + p.count; }, 0);
+    }
+
+    /* ========== 抽奖 UI ========== */
+    function refreshPrizeGrid(){
+      var prizes = loadPrizes();
+      if(prizes.length === 0){
+        $prizeGrid.innerHTML = '<div class="prize-empty">暂无奖品，请联系工作人员设置</div>';
+        return;
+      }
+      var html = '';
+      prizes.forEach(function(p){
+        html += '<div class="prize-cell" data-id="' + p.id + '">'
+          + '<div class="prize-icon">' + p.icon + '</div>'
+          + '<div class="prize-name">' + p.name + '</div>'
+          + '</div>';
+      });
+      $prizeGrid.innerHTML = html;
+    }
+
+    function renderPrizeGrid(){
+      refreshPrizeGrid();
+      $lotteryResult.classList.remove('show');
+      $drawBtn.disabled = false;
+      $drawBtn.textContent = '开始抽奖';
+      $prizeGrid.style.display = '';
+    }
+
+    /* ========== 抽奖逻辑 ========== */
+    function drawLottery(){
+      if(lotterySpinning) return;
+
+      $lotteryResult.classList.remove('show');
+
+      var available = getAvailablePrizes();
+      if(available.length === 0){
+        refreshPrizeGrid();
+        $prizeGrid.style.display = '';
+        $drawBtn.textContent = '奖品已抽完';
+        $drawBtn.disabled = true;
+        showToast('奖品已抽完，请联系工作人员补充');
+        return;
+      }
+
+      refreshPrizeGrid();
+      $prizeGrid.style.display = '';
+
+      lotterySpinning = true;
+      $drawBtn.disabled = true;
+      $drawBtn.textContent = '抽奖中...';
+
+      var cells = $prizeGrid.querySelectorAll('.prize-cell');
+      var total = getTotalPrizeCount();
+
+      /* 按剩余数量加权随机选奖品 */
+      var rand = Math.random() * total;
+      var winner = available[available.length - 1];
+      var cum = 0;
+      for(var i=0; i<available.length; i++){
+        cum += available[i].count;
+        if(rand < cum){ winner = available[i]; break; }
+      }
+
+      /* 旋转高亮动画 */
+      var spinCount = 0;
+      var maxSpins = 18;
+      var interval = 70;
+      var currentCell = -1;
+
+      function clearHighlight(){
+        for(var j=0; j<cells.length; j++) cells[j].classList.remove('spinning');
+      }
+
+      function spin(){
+        clearHighlight();
+        currentCell = (currentCell + 1) % cells.length;
+        cells[currentCell].classList.add('spinning');
+
+        spinCount++;
+        if(spinCount < maxSpins){
+          if(spinCount > maxSpins * 0.6) interval += 25;
+          setTimeout(spin, interval);
+        } else {
+          clearHighlight();
+          var winIndex = 0;
+          for(var k=0; k<cells.length; k++){
+            if(parseInt(cells[k].getAttribute('data-id'), 10) === winner.id){
+              winIndex = k; break;
+            }
+          }
+          cells[winIndex].classList.add('won');
+
+          /* 扣减中奖奖品库存 — Firebase 事务保证多人并发安全 */
+          if(fbReady){
+            fbDatabase.ref(PRIZE_REF).transaction(function(currentData){
+              if(!currentData) return currentData;
+              for(var m=0; m<currentData.length; m++){
+                if(currentData[m].id === winner.id && currentData[m].count > 0){
+                  currentData[m].count--;
+                  break;
+                }
+              }
+              return currentData;
+            });
+          } else {
+            var prizes = loadPrizesLocal();
+            for(var m=0; m<prizes.length; m++){
+              if(prizes[m].id === winner.id){
+                prizes[m].count = Math.max(0, prizes[m].count - 1);
+                break;
+              }
+            }
+            try{ localStorage.setItem(PRIZE_STORAGE_KEY, JSON.stringify(prizes)); }catch(e){}
+            prizesCache = prizes;
+            onPrizesChanged();
+          }
+
+          /* 展示抽奖结果 */
+          setTimeout(function(){
+            $prizeGrid.style.display = 'none';
+            $resultIcon.textContent = winner.icon;
+            $resultText.textContent = '🎉 恭喜你抽中！';
+            $resultPrize.textContent = winner.name;
+            $lotteryResult.classList.add('show');
+
+            $drawBtn.disabled = false;
+            $drawBtn.textContent = '再抽一次';
+            lotterySpinning = false;
+          }, 600);
+        }
+      }
+
+      spin();
+    }
+
+    /* 初始化 */
+    initFirebase();
+  </script>
+</body>
+</html>
